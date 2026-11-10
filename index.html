@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Order party trays, lechon and catering from Eurika's Party Trays, Catering & Events in Butuan City.">
+<link rel="icon" href="img/logo.jpg">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Eurika's Order Online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sticky brand bar + tab strip; menu as photo-card grid; cart as side drawer (bottom sheet on phones); owner dashboard as list + detail. */
+:root{
+  --bg:#FBF8F7; --surface:#FFFFFF; --sunk:#F4EEEF; --ink:#1E1A1C; --muted:#6E6368; --line:#E8DFE2;
+  --pink:#E07AA9; --pink-ink:#A63B6C; --pink-soft:#FBE7F0; --on-pink:#FFFFFF;
+  --ok:#2E7A4E; --ok-soft:#E3F2E8; --warn:#9A6212; --warn-soft:#FBF0DC; --info:#2F5FA8; --info-soft:#E4ECF8; --bad:#A93A35; --bad-soft:#F8E3E1;
+  --display:"DM Serif Display", Georgia, "Times New Roman", serif;
+  --body:"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:12px; --shadow:0 8px 28px rgba(40,20,30,.10);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#161214; --surface:#211B1E; --sunk:#1B1619; --ink:#F3ECEF; --muted:#B4A7AD; --line:#3A3035;
+  --pink:#EE9CC2; --pink-ink:#F4B4D2; --pink-soft:#3B2531; --on-pink:#2A1520;
+  --ok:#7CCB9A; --ok-soft:#1F3328; --warn:#E3B15E; --warn-soft:#382B17; --info:#8FB2EA; --info-soft:#1E2A3E; --bad:#EE958F; --bad-soft:#3D2120;
+  --shadow:0 8px 28px rgba(0,0,0,.45); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#161214; --surface:#211B1E; --sunk:#1B1619; --ink:#F3ECEF; --muted:#B4A7AD; --line:#3A3035;
+  --pink:#EE9CC2; --pink-ink:#F4B4D2; --pink-soft:#3B2531; --on-pink:#2A1520;
+  --ok:#7CCB9A; --ok-soft:#1F3328; --warn:#E3B15E; --warn-soft:#382B17; --info:#8FB2EA; --info-soft:#1E2A3E; --bad:#EE958F; --bad-soft:#3D2120;
+  --shadow:0 8px 28px rgba(0,0,0,.45); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0;letter-spacing:.005em}
+h2{font-size:clamp(26px,4vw,34px)} h3{font-size:21px}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--pink-ink);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--pink-ink)}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-block:10px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;color:inherit}
+.brand img{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#fff;border:1px solid var(--line)}
+.brand b{font-family:var(--display);font-weight:400;font-size:20px;line-height:1.1;display:block}
+.brand span{font-size:12px;color:var(--muted)}
+.spacer{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;padding:10px 18px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:14px;text-decoration:none;color:var(--ink)}
+.btn:hover{border-color:var(--pink)}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn.pink{background:var(--pink);color:var(--on-pink);border-color:var(--pink)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.cartbtn .badge{background:var(--pink);color:var(--on-pink);border-radius:999px;min-width:22px;height:22px;display:inline-grid;place-items:center;font-size:12px;padding:0 6px}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.tabs a{padding:12px 14px;text-decoration:none;color:var(--muted);font-weight:600;border-bottom:2px solid transparent;white-space:nowrap}
+.tabs a[aria-current="page"]{color:var(--ink);border-color:var(--pink)}
+.tabrow{border-top:1px solid var(--line)}
+.preview-note{background:var(--pink-soft);color:var(--ink);font-size:13px}
+.preview-note .wrap{padding-block:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+main{padding-block:28px 80px}
+.section-head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;margin-bottom:18px}
+.section-head p{max-width:60ch}
+.group{margin-top:34px}
+.group h3{margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.card .ph{aspect-ratio:16/9;width:100%;object-fit:cover;display:block;background:var(--sunk);border-bottom:1px solid var(--line)}
+.card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card .name{font-weight:700;font-size:16px}
+.card .meta{font-size:13px;color:var(--muted)}
+.card .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:10px}
+.price{font-family:var(--display);font-size:22px}
+.save{font-size:12px;font-weight:700;color:var(--ok);background:var(--ok-soft);padding:2px 8px;border-radius:999px}
+.soldout{font-size:12px;font-weight:700;color:var(--muted)}
+.hero{display:grid;grid-template-columns:1.3fr 1fr;gap:22px;align-items:center;margin-bottom:8px}
+.hero h1{font-size:clamp(32px,5.4vw,52px);line-height:1.05}
+.hero p{margin-top:10px;max-width:52ch;color:var(--muted)}
+.hero .facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{font-size:12px;font-weight:600;border:1px solid var(--line);border-radius:999px;padding:4px 10px;background:var(--surface)}
+.hero img{border-radius:var(--r);aspect-ratio:16/9;object-fit:cover;width:100%;border:1px solid var(--line)}
+@media (max-width:760px){.hero{grid-template-columns:1fr}}
+
+/* overlay / drawer */
+.scrim{position:fixed;inset:0;background:rgba(20,10,15,.45);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--surface);z-index:41;display:flex;flex-direction:column;box-shadow:var(--shadow);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,calc(100% - 24px));max-height:calc(100% - 40px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:auto;background:var(--surface);z-index:41;border-radius:16px;box-shadow:var(--shadow)}
+.panel-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.panel-b{padding:16px 18px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:14px}
+.panel-f{padding:14px 18px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.x{border:0;background:transparent;font-size:22px;line-height:1;padding:4px 8px;border-radius:8px;color:var(--muted)}
+.modal img.ph{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+
+/* forms */
+label.f{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:14px}
+label.f small{font-weight:400;color:var(--muted)}
+input[type=text],input[type=tel],input[type=email],input[type=date],input[type=number],input[type=password],select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;font-size:15px}
+textarea{min-height:78px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--bg);display:flex;align-items:center;gap:8px;font-size:14px}
+.opt input{accent-color:var(--pink-ink)}
+.opt:has(input:checked){border-color:var(--pink-ink);background:var(--pink-soft)}
+fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+legend{font-weight:700;font-size:14px;padding:0;margin-bottom:6px}
+.counter{font-size:12px;font-weight:700;color:var(--muted)}
+.counter.okc{color:var(--ok)}
+.err{color:var(--bad);font-size:13px;font-weight:600}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.qty button{border:0;background:transparent;width:34px;height:34px;font-size:18px}
+.qty span{min-width:26px;text-align:center;font-weight:700}
+.line{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding-block:12px;border-bottom:1px solid var(--line)}
+.line:last-child{border-bottom:0}
+.line .d{font-size:13px;color:var(--muted)}
+.total{display:flex;justify-content:space-between;align-items:baseline;font-weight:700}
+.total .price{font-size:26px}
+.note{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px}
+.empty{padding:30px 0;text-align:center;color:var(--muted)}
+
+/* checkout / done */
+.layout2{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:820px){.layout2{grid-template-columns:1fr}}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:14px}
+.steps{display:flex;gap:8px;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px}
+.steps b{color:var(--ink)}
+pre.msg{white-space:pre-wrap;font-family:var(--body);font-size:14px;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:14px;margin:0;overflow-x:auto}
+.ref{font-family:var(--display);font-size:40px;letter-spacing:.02em}
+
+/* policies */
+.policy{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.policy .box h3{font-size:19px}
+.policy ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+footer{border-top:1px solid var(--line);padding-block:26px;font-size:13px;color:var(--muted)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:8px 24px}
+
+/* owner */
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.st-pending{color:var(--warn);background:var(--warn-soft)}
+.st-await{color:var(--info);background:var(--info-soft)}
+.st-reserved{color:var(--ok);background:var(--ok-soft)}
+.st-cancel{color:var(--muted);background:var(--sunk)}
+.flag{color:var(--bad);background:var(--bad-soft)}
+.otabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.otabs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px}
+.otabs button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+@media (max-width:700px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.stat b{font-family:var(--display);font-size:28px;font-weight:400;display:block}
+.stat span{font-size:12px;color:var(--muted);font-weight:600}
+.olist{display:flex;flex-direction:column;gap:8px}
+.orow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;text-align:left;width:100%}
+.orow[aria-current="true"]{border-color:var(--pink-ink);box-shadow:0 0 0 1px var(--pink-ink)}
+.orow .r{font-weight:700;font-variant-numeric:tabular-nums}
+.orow .who{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.orow .sub{grid-column:2 / 4;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 12px}
+.olayout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;align-items:start}
+@media (max-width:900px){.olayout{grid-template-columns:1fr}}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.hist{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px;margin:0;padding-left:16px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.cal .dh{font-size:12px;font-weight:700;color:var(--muted);padding:8px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--sunk)}
+.cal .day{min-height:96px;padding:6px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px;min-width:0}
+.cal .day .n{font-size:12px;font-weight:700;color:var(--muted)}
+.cal .day.out{background:var(--sunk)}
+.cal .day.today .n{color:var(--pink-ink)}
+.cal .day.blocked{background:repeating-linear-gradient(135deg,var(--sunk) 0 6px,transparent 6px 12px)}
+.ev{font-size:11px;font-weight:600;border-radius:6px;padding:3px 5px;border:1px solid currentColor;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;text-align:left;width:100%}
+.ev.reserved{background:var(--ok-soft);color:var(--ok)}
+.ev.pending{color:var(--warn)}
+.ev.await{color:var(--info)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-top:10px}
+.calwrap{overflow-x:auto}
+.calwrap .cal{min-width:620px}
+table.menu{width:100%;border-collapse:collapse;font-size:14px}
+table.menu th,table.menu td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.menu th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+table.menu input[type=number]{width:110px;padding:6px 8px}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;z-index:60;box-shadow:var(--shadow)}
+@media (prefers-reduced-motion:no-preference){.drawer{animation:slide .22s ease-out}.modal{animation:pop .18s ease-out}@keyframes slide{from{transform:translateX(30px);opacity:.6}}@keyframes pop{from{opacity:.4;transform:translate(-50%,-48%)}}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#trays"><img src="img/logo.jpg" alt="Eurika logo"><div><b>Eurika's</b><span>Party Trays, Catering &amp; Events · Butuan</span></div></a>
+    <div class="spacer"></div>
+    <button class="btn cartbtn" id="cartBtn" type="button" aria-label="Open order">Order <span class="badge num" id="cartCount">0</span></button>
+  </div>
+  <div class="tabrow"><div class="wrap"><nav class="tabs" id="tabs">
+    <a href="#trays">Party Trays</a><a href="#lechon">Lechon</a><a href="#catering">Catering</a><a href="#policies">Contact &amp; Policies</a><a href="#owner">Owner</a>
+  </nav></div></div>
+</header>
+<div class="preview-note"><div class="wrap"><b>Preview with test data.</b><span>Orders placed here stay in this browser and are not sent to Eurika's.</span><button class="btn sm ghost" id="resetBtn" type="button">Reset test data</button></div></div>
+
+<main><div class="wrap" id="view"></div></main>
+<footer><div class="wrap">
+  <span>Eurika's Party Trays, Catering &amp; Events Place · Since 2017</span>
+  <span>Purok 6, Block 3 Lot 4, Balai Subd., Brgy. Bancasi, Butuan City</span>
+  <span>Orders 7:00 AM – 9:00 PM · Call or text 0954 419 1533</span>
+</div></footer>
+<div id="layer"></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- menu data ---------- */
+const MAINS = {
+  Chicken:["Chinese-Style Fried Chicken","Buttered Chicken","Garlic Chicken","Chicken Cordon Bleu","Spicy Chicken Curry","Chicken Caldereta","Chicken Afritada","Breaded Chicken Fillet","Chicken Steak & Mushrooms","Chicken in Lemon Butter Sauce","Chicken Sticks with Mayo","Chicken Adobo with Pineapple"],
+  Pork:["Pork Humba with Honey","Pork Caldereta","Pork Steak","Breaded Pork Chop","Sweet Garlic Pork BBQ","Sweet & Sour Meatballs","Pork Afritada","Pork Menudo","Bicol Express","Pork Lumpia Shanghai","Orange Sweet Pork Strips"],
+  Beef:["Beef Steak","Cheezy Beef Caldereta","Beef Kare-Kare","Fried Beef Tadyang","Beef Broccoli & Young Corn","Beef & Mushrooms","Beef Mechado","Beef Camto"],
+  "Fish & Seafood":["Breaded Fish Fillet","Sweet & Sour Fish Fillet","Fish Fillet in Lemon Butter Sauce","Tuna Kinilaw","Garlic Buttered Shrimp","Shrimp Tempura","Calamares","Mixed Seafood (Crabs, Tahong, Shrimp)"]
+};
+const SIDES = {
+  Vegetables:["Four Seasons","Chopsuey","Buttered Veggies","Pinakbet","Farmer's Salad","Garden Salad"],
+  Pasta:["Creamy Spaghetti","Chicken Carbonara","Tuna Carbonara","Baked Mac & Cheese"],
+  Noodles:["Sotanghon Guisado","Pancit Guisado","Pancit Canton","Bihon Guisado","Bam-i"]
+};
+const DESSERTS = ["Mango Pandan & Gulaman","Cheezy Fruit Salad","Classic Macaroni"];
+const TRAY3 = (s,m,l)=>[{k:"S",label:"Small · 15 pax",price:s},{k:"M",label:"Medium · 25 pax",price:m},{k:"L",label:"Large · 40 pax",price:l}];
+
+const DEFAULT_MENU = [
+ // Party trays: promos
+ {id:"p4999",sec:"trays",group:"Promo packages",kind:"fixed",name:"6-Tray Party Package",img:"promo-4999",pax:"25–30 pax · Medium trays",price:4999,save:1000,items:["Lumpia Shanghai (40 pcs)","Beef Steak","Sotanghon Guisado","Four Seasons","Chicken Cordon Bleu","Creamy Spaghetti"]},
+ {id:"p4299a",sec:"trays",group:"Promo packages",kind:"fixed",name:"4-Tray Package A",img:"promo-4299a",pax:"25 pax · Medium trays",price:4299,save:1100,items:["Chicken Cordon Bleu (35 slices)","Buttered Chicken (25 pcs)","Creamy Spaghetti","Pork BBQ (50 pcs)"]},
+ {id:"p4299b",sec:"trays",group:"Promo packages",kind:"fixed",name:"4-Tray Package B",img:"promo-4299b",pax:"25 pax · Medium trays",price:4299,save:1100,items:["Chicken Cordon Bleu (35 slices)","Lumpia Shanghai (40 pcs)","Beef Steak","Pork Humba with Honey"]},
+ {id:"p3999",sec:"trays",group:"Promo packages",kind:"fixed",name:"4-Tray Package C",img:"promo-3999",pax:"25 pax · Medium trays",price:3999,save:799,items:["Chicken Cordon Bleu (35 slices)","Lumpia Shanghai (40 pcs)","Cheezy Beef Caldereta","Sotanghon Guisado"]},
+ {id:"p2999a",sec:"trays",group:"Promo packages",kind:"fixed",name:"Small Party Package A",img:"promo-2999a",pax:"15 pax · Small trays",price:2999,save:599,items:["Chicken Cordon Bleu (25 slices)","Creamy Spaghetti","Lumpia Shanghai (30 pcs)","Beef Mechado"]},
+ {id:"p2999b",sec:"trays",group:"Promo packages",kind:"fixed",name:"Small Party Package B",img:"promo-2999b",pax:"15 pax · Small trays",price:2999,save:599,items:["Garlic Chicken","Sotanghon Guisado","Lumpia Shanghai","Pork Steak"]},
+ {id:"byo",sec:"trays",group:"Promo packages",kind:"pick",name:"Build Your Own Package",img:"build-own",pax:"25–30 pax · Medium trays",price:5999,save:1200,pickMains:3,pickSides:3,desc:"Choose 3 main dishes and 3 side dishes."},
+ {id:"xmas",sec:"trays",group:"Promo packages",kind:"pick",name:"Christmas Package",img:"christmas",pax:"15 pax · Small trays",price:3999,pickMains:2,pickSides:2,until:"2026-12-31",desc:"Choose 2 main dishes and 2 side dishes.",
+   mainsList:{"Main dishes":["Beef Steak","Beef with Mushrooms","Garlic Chicken","Buttered Chicken","Pork Humba","Lechon Kawali"]},sidesList:{"Side dishes":["Sotanghon Guisado","Lumpia Shanghai","Creamy Spaghetti","Classic Macaroni"]}},
+ // Party trays: a la carte
+ {id:"beef",sec:"trays",group:"Party trays by the tray",kind:"dish",name:"Beef Party Trays",img:"beef",sizes:TRAY3(999,1500,1800),dishes:["Beef Steak","Cheezy Beef Caldereta","Beef Kare-Kare","Fried Beef Tadyang","Beefy Mushrooms","Beef Mechado","Beef Camto","Beef Salpicao","Beef Bulgogi"]},
+ {id:"chicken",sec:"trays",group:"Party trays by the tray",kind:"dish",name:"Chicken Party Trays",img:"chicken",sizes:TRAY3(999,1500,1800),dishes:["Chinese-Style Fried Chicken","Buttered Chicken","Garlic Chicken","Chicken Cordon Bleu","Spicy Chicken Curry","Chicken Salpicao","Sweet Orange Chicken","Honey Lemon Chicken Strips","Chicken Fillet in Lemon Butter Sauce","Breaded Chicken Fillet","Chicken Afritada","Chicken Sticks with Mayo Dip","Chicken Adobo with Pineapple","Chicken Caldereta","Chicken Steak with Mushrooms","Ginataang Manok"]},
+ {id:"pork",sec:"trays",group:"Party trays by the tray",kind:"dish",name:"Pork Party Trays",img:"pork",sizes:TRAY3(999,1500,1800),dishes:["Pork Steak","Pork Humba with Honey","Pork Afritada","Pork Caldereta","Pork Menudo","Pork Asado & Veggies","Breaded Pork Chop","Sweet & Sour Meatballs","Bicol Express","Sweet Style Pork BBQ","Spicy Pork Adobo","Pork Baby Spare Ribs"]},
+ {id:"seafood",sec:"trays",group:"Party trays by the tray",kind:"dish",name:"Fish & Seafood Party Trays",img:"seafood",sizes:TRAY3(999,1500,1900),dishes:["Breaded Fish Fillet","Sweet and Sour Fish Fillet","Fish Fillet in Lemon Butter Sauce","Tuna Kinilaw","Garlic Butter Shrimp","Mixed Seafood","Calamares"]},
+ {id:"sides",sec:"trays",group:"Party trays by the tray",kind:"dish",name:"Side Dishes",img:"sides",sizes:TRAY3(750,950,1200),dishes:["Four Seasons Vegetables","Chopsuey","Buttered Vegetables","Pinakbet with Shrimp Paste","Farmer's Salad","Garden Salad","Sotanghon Guisado","Bihon Guisado","Bam-i","Pancit Guisado"]},
+ {id:"pasta",sec:"trays",group:"Party trays by the tray",kind:"dish",name:"Pasta Trays",img:"pasta",sizes:TRAY3(850,990,1400),dishes:["Chicken Carbonara","Tuna Carbonara","Beefy Spaghetti","Creamy Chicken Spaghetti","Baked Macaroni and Cheese"]},
+ {id:"lumpia",sec:"trays",group:"Party trays by the tray",kind:"size",name:"Lumpia Shanghai",img:"pasta",sizes:[{k:"S",label:"Small · 40 pcs",price:750},{k:"M",label:"Medium · 50 pcs",price:850},{k:"L",label:"Large · 100 pcs",price:1500}]},
+ {id:"dessert",sec:"trays",group:"Party trays by the tray",kind:"dessert",name:"Dessert Cups",img:"pasta",price:20,minCups:30,dishes:["Mango Pandan with Gulaman","Cheesy Fruit Salad","Classic Macaroni Salad"]},
+ {id:"bento",sec:"trays",group:"Packed meals",kind:"bento",name:"Bento & Packed Meals",img:"bento",sizes:[{k:"B",label:"Bento meal",price:160},{k:"S",label:"Styro packed meal",price:150}],desc:"2 main dishes + 1 side dish + rice, per pack."},
+ // Lechon
+ {id:"whole",sec:"lechon",group:"Lechon",kind:"size",name:"Classic Whole Lechon",img:"lechon-whole",sizes:[{k:"15",label:"15 kg",price:6200},{k:"18",label:"18 kg",price:7000},{k:"20",label:"20 kg",price:8000},{k:"25",label:"25 kg",price:9000},{k:"30",label:"30 kg",price:9900}]},
+ {id:"belly",sec:"lechon",group:"Lechon",kind:"size",name:"Lechon Belly",img:"lechon-belly",desc:"Crunchy outside, juicy inside.",sizes:[{k:"3",label:"3 kg",price:2000},{k:"4",label:"4 kg",price:2650},{k:"5",label:"5 kg",price:3250}]},
+ {id:"combo",sec:"lechon",group:"Lechon packages",kind:"fixed",name:"One Perfect Combo",img:"lechon-combo",pax:"30 pax · 18 kg whole lechon + 6 medium trays",price:8999,save:1999,items:["18 kg Whole Lechon","Buttered Chicken (15 pcs)","Four Seasons","Bam-i","Lumpia Shanghai (30 pcs)","Garlic Buttered Shrimps with Sweetcorn","Laman Loob Halang-Halang"]},
+ {id:"lpp",sec:"lechon",group:"Lechon packages",kind:"fixed",name:"Lechon Party Package",img:"lechon-party",pax:"30–35 pax · Whole lechon + 6 medium trays",price:9999,save:3500,items:["Whole Lechon","Lumpia Shanghai (40 pcs)","Beef Steak","Laman Loob Halang-Halang","Four Seasons","Chicken Cordon Bleu","Creamy Spaghetti"]},
+ {id:"lbp",sec:"lechon",group:"Lechon packages",kind:"fixed",name:"Lechon Belly Package",img:"lechon-belly-pkg",pax:"20 pax · 3 kg lechon belly + 6 trays",price:5999,items:["3 kg Lechon Belly","Cheezy Beef Caldereta","Chicken Cordon Bleu","Sotanghon Guisado","Chopsuey","Lumpia Shanghai (30 pcs)","Free Watermelon"]}
+];
+const CATERING = [
+  {id:"c210",per:210,mains:2,sides:1},{id:"c240",per:240,mains:2,sides:2},{id:"c260",per:260,mains:3,sides:1},{id:"c300",per:300,mains:3,sides:2},{id:"c360",per:360,mains:4,sides:2}
+];
+const PAY = [
+  ["GCash","Eurika Manilag","0992 381 0230"],["Maya / GCash","Ricky Manilag","0991 880 4660"],["PalawanPay","Eurika Audrey Manilag","0954 419 1533"],["EastWest Bank","Eurika Audrey Manilag","2000 4033 4806"]
+];
+const METHODS = ["Personal pickup","I'll book my own rider","Eurika books a Maxim rider"];
+const PAGE_ID = "1719414398357093";
+
+/* ---------- state ---------- */
+const TODAY = new Date();
+const iso = d=>{const z=new Date(d);return z.getFullYear()+"-"+String(z.getMonth()+1).padStart(2,"0")+"-"+String(z.getDate()).padStart(2,"0")};
+const addDays=(n)=>{const d=new Date(TODAY);d.setDate(d.getDate()+n);return iso(d)};
+function sampleOrders(){
+  return [
+   {ref:"EU-1040",type:"order",sample:true,created:Date.now()-3600e3*5,name:"Sample: Ana Reyes",phone:"0917 000 0001",date:addDays(4),time:"10:00",method:METHODS[0],address:"",notes:"",lines:[{pid:"p4299a",name:"4-Tray Package A",detail:"25 pax · Medium trays",unit:4299,qty:1,promo:true}],est:4299,status:"pending",terms:{},cal:{state:"none"},msg:{summary:"linked",payment:"none"},hist:["Order submitted on the website","Summary sent in Messenger"]},
+   {ref:"EU-1041",type:"order",sample:true,created:Date.now()-3600e3*28,name:"Sample: Mark Dela Cruz",phone:"0917 000 0002",date:addDays(6),time:"15:30",method:METHODS[2],address:"Km. 5, Libertad, Butuan City",notes:"Please slice the lechon.",lines:[{pid:"whole",name:"Classic Whole Lechon",detail:"18 kg",unit:7000,qty:1},{pid:"pasta",name:"Pasta Trays",detail:"Creamy Chicken Spaghetti · Medium · 25 pax",unit:990,qty:1}],est:7990,status:"await",terms:{final:7990,due:3995,balance:3995,balanceDue:"Upon pickup or before rider release",deadline:addDays(2)},cal:{state:"none"},msg:{summary:"linked",payment:"sent"},hist:["Order submitted on the website","Summary sent in Messenger","Approved, payment instructions sent in Messenger"]},
+   {ref:"EU-1042",type:"order",sample:true,created:Date.now()-3600e3*60,name:"Sample: Joy Santos",phone:"0917 000 0003",date:addDays(10),time:"10:00",method:METHODS[0],address:"",notes:"",lines:[{pid:"lpp",name:"Lechon Party Package",detail:"30–35 pax",unit:9999,qty:1,promo:true}],est:9999,status:"reserved",terms:{final:9999,due:9999,balance:0,balanceDue:"",deadline:""},cal:{state:"synced",id:"evt_1042"},msg:{summary:"linked",payment:"sent"},hist:["Order submitted on the website","Approved, payment instructions sent in Messenger","Full payment verified, booking reserved","Added to Google Calendar"]},
+   {ref:"EU-1043",type:"catering",sample:true,created:Date.now()-3600e3*2,name:"Sample: Butuan Rotary Club",phone:"0917 000 0004",date:addDays(19),time:"18:00",method:"Catering",address:"Almont Inland Resort function hall, Butuan City",notes:"Induction night. Need 2 extra staff if possible.",theme:"Royal blue and gold",fb:"Butuan Rotary Club",alt:"Sample: Ramon Lim",altPhone:"0917 000 0006",guests:88,pkg:"c300",mains:["Chicken Cordon Bleu","Beef Steak","Garlic Buttered Shrimp"],sides:["Four Seasons","Creamy Spaghetti"],dessert:"Mango Pandan & Gulaman",lines:[],est:26400,status:"pending",terms:{},cal:{state:"none"},msg:{summary:"fallback",payment:"none"},hist:["Quotation request submitted","Messenger handoff not completed; customer saw Copy Order & Open Messenger"]},
+   {ref:"EU-1039",type:"order",sample:true,created:Date.now()-3600e3*90,name:"Sample: Leah Ong",phone:"0917 000 0005",date:addDays(3),time:"17:00",method:METHODS[1],address:"",notes:"",lines:[{pid:"p2999b",name:"Small Party Package B",detail:"15 pax",unit:2999,qty:1,promo:true}],est:2999,status:"reserved",terms:{final:2999,due:1500,balance:1499,balanceDue:"Upon pickup or before rider release",deadline:""},cal:{state:"failed"},msg:{summary:"linked",payment:"sent"},hist:["Order submitted on the website","Down payment verified, booking reserved","Google Calendar sync failed"]}
+  ];
+}
+const KEY="eurika-preview-v1";
+let S;
+function fresh(){return {cart:[],orders:sampleOrders(),seq:1044,menu:JSON.parse(JSON.stringify(DEFAULT_MENU)),settings:{lead:24,open:"07:00",close:"21:00",blocked:[addDays(15)],reminders:"1 day before, 2 hours before"},owner:false,sel:"EU-1040",otab:"orders",calMonth:iso(TODAY).slice(0,7),filter:"all",idem:{}}}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&o.orders&&o.menu)return Object.assign(fresh(),o)}}catch(e){}return fresh()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+S=load();
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const peso=n=>"₱"+Math.round(Number(n)||0).toLocaleString("en-PH");
+const prod=id=>S.menu.find(p=>p.id===id);
+function fmtDate(d){if(!d)return"";const x=new Date(d+"T00:00");return x.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"})}
+function fmtTime(t){if(!t)return"";let[h,m]=t.split(":").map(Number);const ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+String(m).padStart(2,"0")+" "+ap}
+function toast(t){const el=document.createElement("div");el.className="toast";el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),2400)}
+async function copy(text,btn){try{await navigator.clipboard.writeText(text);toast("Copied")}catch(e){const pre=btn&&btn.closest(".box,.panel-b,.modal")?.querySelector("pre.msg");if(pre){const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r)}toast("Select and copy the highlighted text")}}
+function available(p){if(p.off)return false;if(p.until&&iso(TODAY)>p.until)return false;return true}
+const STATUS={pending:["Pending review","st-pending"],await:["Awaiting payment","st-await"],reserved:["Reserved","st-reserved"],cancel:["Cancelled","st-cancel"]};
+const pill=st=>`<span class="pill ${STATUS[st][1]}">${STATUS[st][0]}</span>`;
+function timeSlots(){const out=[];let[h,m]=S.settings.open.split(":").map(Number);const[ch,cm]=S.settings.close.split(":").map(Number);while(h*60+m<=ch*60+cm){out.push(String(h).padStart(2,"0")+":"+String(m).padStart(2,"0"));m+=30;if(m>=60){h++;m-=60}}return out}
+function cartTotal(){return S.cart.reduce((a,l)=>a+l.unit*l.qty,0)}
+function updateCount(){$("#cartCount").textContent=S.cart.reduce((a,l)=>a+l.qty,0)}
+function checkSlot(date,time){
+  if(!date||!time)return"Choose a date and time.";
+  if(S.settings.blocked.includes(date))return"That date is fully booked. Please choose another date.";
+  const when=new Date(date+"T"+time);const min=new Date(Date.now()+S.settings.lead*3600e3);
+  if(when<min)return`Please order at least ${S.settings.lead} hours ahead. The earliest time is ${min.toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}.`;
+  return"";
+}
+
+/* ---------- layers ---------- */
+function closeLayer(){$("#layer").innerHTML="";document.body.style.overflow=""}
+function openLayer(html,cls){$("#layer").innerHTML=`<div class="scrim" data-close></div><div class="${cls}" role="dialog" aria-modal="true">${html}</div>`;document.body.style.overflow="hidden";const f=$("#layer").querySelector("input,select,button:not(.x)");if(f)f.focus({preventScroll:true})}
+document.addEventListener("click",e=>{if(e.target.closest("[data-close]"))closeLayer()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("#layer").innerHTML)closeLayer()});
+
+/* ---------- customer: menu ---------- */
+function cardHTML(p){
+  const ok=available(p);
+  let from=p.price!=null?peso(p.price):p.sizes?"from "+peso(Math.min(...p.sizes.map(s=>s.price))):"";
+  if(p.kind==="dessert")from=peso(p.price)+" / cup";
+  if(p.kind==="bento")from="from "+peso(Math.min(...p.sizes.map(s=>s.price)))+" / pack";
+  const meta=p.pax||p.desc||(p.sizes?p.sizes.map(s=>s.label.split(" · ")[0]).join(" · "):"")||"";
+  return `<article class="card"><img class="ph" src="img/${p.img}.jpg" alt="${esc(p.name)}" loading="lazy">
+   <div class="body"><div class="name">${esc(p.name)}</div><div class="meta">${esc(meta)}</div>
+   ${p.items?`<div class="meta">${esc(p.items.join(" · "))}</div>`:""}
+   ${p.until?`<div class="meta">Available until ${esc(fmtDate(p.until))}</div>`:""}
+   <div class="row"><div><span class="price num">${from}</span> ${p.save?`<span class="save">Save ${peso(p.save)}</span>`:""}</div>
+   ${ok?`<button class="btn pink sm" type="button" data-add="${p.id}">${p.kind==="fixed"?"Add":"Choose"}</button>`:`<span class="soldout">Not available</span>`}</div></div></article>`;
+}
+function groupHTML(sec){
+  const groups=[...new Set(S.menu.filter(p=>p.sec===sec).map(p=>p.group))];
+  return groups.map(g=>`<section class="group"><h3>${esc(g)}</h3><div class="grid">${S.menu.filter(p=>p.sec===sec&&p.group===g).map(cardHTML).join("")}</div></section>`).join("");
+}
+function viewTrays(){return `<div class="hero"><div><div class="eyebrow">Order online · Pickup in Bancasi</div><h1>Party trays for every celebration in Butuan</h1><p>Choose your trays, pick a pickup date and time, and send your order. Our team confirms availability and payment details in Messenger.</p><div class="facts"><span class="chip">Order at least 24 hours ahead</span><span class="chip">50% down payment reserves your slot</span><span class="chip">Pickup or Maxim rider</span></div></div><img src="img/promo-4999.jpg" alt="Six party trays: lumpia, beef steak, sotanghon, four seasons, cordon bleu and creamy spaghetti"></div>${groupHTML("trays")}`}
+function viewLechon(){return `<div class="section-head"><div><div class="eyebrow">Lechon</div><h2>Whole lechon, lechon belly and packages</h2></div><p class="muted">Whole lechon and large orders may need a car for safe transport. We'll recommend the right vehicle when we confirm your order.</p></div>${groupHTML("lechon")}`}
+
+/* configurator */
+function pickGroups(lists,name,n){
+  return Object.entries(lists).map(([g,arr])=>`<fieldset><legend>${esc(g)}</legend><div class="opts">${arr.map((d,i)=>`<label class="opt"><input type="checkbox" name="${name}" value="${esc(d)}">${esc(d)}</label>`).join("")}</div></fieldset>`).join("")+`<div class="counter" data-counter="${name}" data-n="${n}">0 of ${n} chosen</div>`;
+}
+function openAdd(id){
+  const p=prod(id);let body="";
+  if(p.kind==="fixed"){body=`<ul class="small" style="margin:0;padding-left:18px">${p.items.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>`}
+  if(p.kind==="dish"){body=`<label class="f">Dish<select id="cfDish">${p.dishes.map(d=>`<option>${esc(d)}</option>`).join("")}</select></label>`}
+  if(p.kind==="dish"||p.kind==="size"||p.kind==="bento"){body+=`<fieldset><legend>Size</legend><div class="opts">${p.sizes.map((s,i)=>`<label class="opt"><input type="radio" name="cfSize" value="${s.k}" ${i===(p.kind==="bento"?0:Math.min(1,p.sizes.length-1))?"checked":""}>${esc(s.label)} · <b class="num">${peso(s.price)}</b></label>`).join("")}</div></fieldset>`}
+  if(p.kind==="pick"){body=`<p class="small muted">${esc(p.desc)}</p><div><h3 style="font-size:17px;margin-bottom:8px">Main dishes</h3>${pickGroups(p.mainsList||MAINS,"cfMain",p.pickMains)}</div><div><h3 style="font-size:17px;margin-bottom:8px">Side dishes</h3>${pickGroups(p.sidesList||SIDES,"cfSide",p.pickSides)}</div>`}
+  if(p.kind==="bento"){body+=`<div><h3 style="font-size:17px;margin-bottom:8px">Main dishes</h3>${pickGroups(MAINS,"cfMain",2)}</div><div><h3 style="font-size:17px;margin-bottom:8px">Side dish</h3>${pickGroups(SIDES,"cfSide",1)}</div>`}
+  if(p.kind==="dessert"){body=`<label class="f">Dessert<select id="cfDish">${p.dishes.map(d=>`<option>${esc(d)}</option>`).join("")}</select></label><label class="f">Number of cups <small>${peso(p.price)} per cup · minimum ${p.minCups} cups</small><input id="cfCups" type="number" min="${p.minCups}" step="1" value="${p.minCups}" inputmode="numeric"></label>`}
+  const showQty=p.kind!=="dessert";
+  openLayer(`<img class="ph" src="img/${p.img}.jpg" alt=""><div class="panel-h"><div><h3>${esc(p.name)}</h3><div class="small muted">${esc(p.pax||"")}</div></div><button class="x" type="button" data-close aria-label="Close">×</button></div>
+   <div class="panel-b">${body}${showQty?`<div style="display:flex;align-items:center;gap:12px"><b>${p.kind==="bento"?"Packs":"Quantity"}</b><div class="qty"><button type="button" id="qm" aria-label="Less">−</button><span id="qv" class="num">${p.kind==="bento"?10:1}</span><button type="button" id="qp" aria-label="More">+</button></div></div>`:""}<div class="err" id="cfErr" role="alert"></div></div>
+   <div class="panel-f"><button class="btn primary" type="button" id="cfAdd">Add to order · <span id="cfPrice" class="num"></span></button></div>`,"modal");
+  const L=$("#layer");
+  const qv=()=>showQty?Number($("#qv").textContent):1;
+  const unit=()=>{if(p.price!=null&&p.kind!=="dessert")return p.price;if(p.kind==="dessert")return p.price*Math.max(0,Number($("#cfCups").value)||0);const k=L.querySelector("input[name=cfSize]:checked")?.value;return(p.sizes.find(s=>s.k===k)||p.sizes[0]).price};
+  const refresh=()=>{$("#cfPrice").textContent=peso(unit()*qv());L.querySelectorAll("[data-counter]").forEach(c=>{const n=+c.dataset.n;const k=L.querySelectorAll(`input[name=${c.dataset.counter}]:checked`).length;c.textContent=`${k} of ${n} chosen`;c.classList.toggle("okc",k===n);L.querySelectorAll(`input[name=${c.dataset.counter}]`).forEach(i=>{i.disabled=!i.checked&&k>=n})})};
+  L.addEventListener("change",refresh);L.addEventListener("input",refresh);
+  if(showQty){$("#qm").onclick=()=>{$("#qv").textContent=Math.max(1,qv()-1);refresh()};$("#qp").onclick=()=>{$("#qv").textContent=qv()+1;refresh()}}
+  refresh();
+  $("#cfAdd").onclick=()=>{
+    const err=$("#cfErr");err.textContent="";let detail=p.pax||"";
+    const picked=n=>[...L.querySelectorAll(`input[name=${n}]:checked`)].map(i=>i.value);
+    const sizeLabel=()=>{const k=L.querySelector("input[name=cfSize]:checked")?.value;return(p.sizes.find(s=>s.k===k)||p.sizes[0]).label};
+    if(p.kind==="pick"||p.kind==="bento"){const nm=p.kind==="bento"?2:p.pickMains,ns=p.kind==="bento"?1:p.pickSides;const m=picked("cfMain"),s=picked("cfSide");if(m.length!==nm||s.length!==ns){err.textContent=`Choose ${nm} main dish${nm>1?"es":""} and ${ns} side dish${ns>1?"es":""}.`;return}detail=(p.kind==="bento"?sizeLabel()+" · ":"")+"Mains: "+m.join(", ")+" · Sides: "+s.join(", ")}
+    if(p.kind==="dish")detail=$("#cfDish").value+" · "+sizeLabel();
+    if(p.kind==="size")detail=sizeLabel();
+    if(p.kind==="dessert"){const c=Number($("#cfCups").value);if(!(c>=p.minCups)){err.textContent=`The minimum is ${p.minCups} cups.`;return}detail=$("#cfDish").value+" · "+c+" cups"}
+    S.cart.push({pid:p.id,name:p.name,detail,unit:unit(),qty:qv(),promo:!!p.save||p.group.includes("package")});
+    save();updateCount();closeLayer();toast("Added to your order");
+  };
+}
+
+/* cart */
+function openCart(){
+  const lines=S.cart.map((l,i)=>`<div class="line"><div><b>${esc(l.name)}</b><div class="d">${esc(l.detail)}</div></div><div class="num" style="text-align:right;font-weight:700">${peso(l.unit*l.qty)}</div><div class="qty"><button type="button" data-q="${i}" data-d="-1" aria-label="Less">−</button><span class="num">${l.qty}</span><button type="button" data-q="${i}" data-d="1" aria-label="More">+</button></div><button class="btn sm ghost" type="button" data-rm="${i}">Remove</button></div>`).join("");
+  openLayer(`<div class="panel-h"><h3>Your order</h3><button class="x" type="button" data-close aria-label="Close">×</button></div>
+   <div class="panel-b">${S.cart.length?lines:`<div class="empty">Your order is empty.<br>Add party trays or lechon to get started.</div>`}</div>
+   <div class="panel-f"><div class="total"><span>Estimated total</span><span class="price num">${peso(cartTotal())}</span></div><p class="small muted">Delivery or transport fees are separate. Our team confirms the final total.</p><button class="btn primary" type="button" id="toCheckout" ${S.cart.length?"":"disabled"}>Continue to pickup details</button></div>`,"drawer");
+  $("#layer").querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{const l=S.cart[b.dataset.q];l.qty=Math.max(1,l.qty+Number(b.dataset.d));save();updateCount();openCart()});
+  $("#layer").querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{S.cart.splice(+b.dataset.rm,1);save();updateCount();openCart()});
+  const t=$("#toCheckout");if(t)t.onclick=()=>{closeLayer();location.hash="checkout"};
+}
+
+/* checkout */
+let draft={};
+function viewCheckout(){
+  if(!S.cart.length)return `<div class="empty"><h2>Your order is empty</h2><p style="margin-top:8px">Add party trays or lechon first.</p><p style="margin-top:14px"><a class="btn primary" href="#trays">Browse the menu</a></p></div>`;
+  const slots=timeSlots();
+  return `<div class="steps"><span>1 Menu</span>›<b>2 Pickup details</b>›<span>3 Review</span></div>
+  <div class="layout2"><form class="box" id="coForm" novalidate>
+   <h2>Pickup details</h2>
+   <div class="two"><label class="f">Full name<input id="coName" type="text" autocomplete="name" value="${esc(draft.name||"")}" required></label>
+   <label class="f">Mobile number<input id="coPhone" type="tel" autocomplete="tel" placeholder="09XX XXX XXXX" value="${esc(draft.phone||"")}" required></label></div>
+   <div class="two"><label class="f">Pickup date<input id="coDate" type="date" min="${iso(TODAY)}" value="${esc(draft.date||addDays(2))}" required></label>
+   <label class="f">Pickup time<select id="coTime">${slots.map(t=>`<option value="${t}" ${t===(draft.time||"10:00")?"selected":""}>${fmtTime(t)}</option>`).join("")}</select></label></div>
+   <fieldset><legend>How will you get your order?</legend><div class="opts">${METHODS.map((m,i)=>`<label class="opt"><input type="radio" name="coMethod" value="${esc(m)}" ${(draft.method||METHODS[0])===m?"checked":""}>${esc(m)}</label>`).join("")}</div></fieldset>
+   <label class="f" id="addrWrap" hidden>Delivery address <small>We'll confirm the Maxim fare with you before booking. The fare is paid by the customer.</small><input id="coAddr" type="text" value="${esc(draft.address||"")}"></label>
+   <label class="f">Notes for Eurika's <small>Optional. Special requests are handled personally by our team.</small><textarea id="coNotes">${esc(draft.notes||"")}</textarea></label>
+   <p class="note">We collect your name, mobile number and order details only to prepare and confirm your order. We don't share them with anyone else.</p>
+   <div class="err" id="coErr" role="alert"></div>
+   <button class="btn primary" type="submit">Review order</button>
+  </form>
+  <aside class="box"><h3>Your order</h3>${S.cart.map(l=>`<div class="line"><div><b>${l.qty} × ${esc(l.name)}</b><div class="d">${esc(l.detail)}</div></div><div class="num">${peso(l.unit*l.qty)}</div></div>`).join("")}<div class="total"><span>Estimated total</span><span class="price num">${peso(cartTotal())}</span></div><button class="btn sm ghost" type="button" id="editCart">Edit order</button></aside></div>`;
+}
+function bindCheckout(){
+  const f=$("#coForm");if(!f)return;
+  const sync=()=>{$("#addrWrap").hidden=f.querySelector("input[name=coMethod]:checked").value!==METHODS[2]};
+  f.addEventListener("change",sync);sync();
+  $("#editCart").onclick=openCart;
+  f.onsubmit=e=>{e.preventDefault();
+    draft={name:$("#coName").value.trim(),phone:$("#coPhone").value.trim(),date:$("#coDate").value,time:$("#coTime").value,method:f.querySelector("input[name=coMethod]:checked").value,address:$("#coAddr").value.trim(),notes:$("#coNotes").value.trim()};
+    let m="";if(!draft.name)m="Enter your full name.";else if(!/^(09\d{9}|\+?639\d{9})$/.test(draft.phone.replace(/[-\s]/g,"")))m="Enter a valid Philippine mobile number, for example 0917 123 4567.";else m=checkSlot(draft.date,draft.time);
+    if(!m&&draft.method===METHODS[2]&&!draft.address)m="Enter the delivery address for the rider.";
+    $("#coErr").textContent=m;if(m)return;location.hash="review"};
+}
+function summaryText(o){
+  if(o.type==="catering"){const pk=CATERING.find(c=>c.id===o.pkg);return `Quotation request ${o.ref} – Eurika's Catering
+Name: ${o.name}
+Mobile: ${o.phone}${o.fb?"\nFacebook: "+o.fb:""}${o.email?"\nEmail: "+o.email:""}${o.alt?"\nEvent-day contact: "+o.alt+(o.altPhone?" ("+o.altPhone+")":""):""}
+Event: ${fmtDate(o.date)} · ${fmtTime(o.time)}
+Venue: ${o.address}
+Guests: ${o.guests} pax
+Color theme: ${o.theme||"Not specified"}
+Package: ${peso(pk.per)} per head (${pk.mains} mains + ${pk.sides} side${pk.sides>1?"s":""})
+Mains: ${o.mains.join(", ")}
+Sides: ${o.sides.join(", ")}
+Dessert: ${o.dessert}
+Estimated food total: ${peso(o.est)} (transportation may apply)${o.notes?"\nNotes: "+o.notes:""}
+Status: Pending review. Our team will confirm the quote and availability here.`}
+  return `Order ${o.ref} – Eurika's Party Trays
+Name: ${o.name}
+${o.method===METHODS[0]?"Pickup":"Pickup (rider)"}: ${fmtDate(o.date)} · ${fmtTime(o.time)}
+Method: ${o.method}${o.address?"\nDeliver to: "+o.address:""}
+Items:
+${o.lines.map(l=>`• ${l.qty} × ${l.name} (${l.detail}) – ${peso(l.unit*l.qty)}`).join("\n")}
+Estimated total: ${peso(o.est)}${o.notes?"\nNotes: "+o.notes:""}
+Status: Pending review. Our team will confirm availability and send payment details here.`;
+}
+function viewReview(){
+  if(!S.cart.length||!draft.name)return viewCheckout();
+  const o=Object.assign({ref:"EU-"+S.seq,type:"order",lines:S.cart,est:cartTotal()},draft);
+  return `<div class="steps"><span>1 Menu</span>›<span>2 Pickup details</span>›<b>3 Review</b></div>
+  <div class="layout2"><div class="box"><h2>Review your order</h2>
+   <dl class="kv"><dt>Name</dt><dd>${esc(o.name)}</dd><dt>Mobile</dt><dd>${esc(o.phone)}</dd><dt>Pickup</dt><dd>${esc(fmtDate(o.date))} · ${esc(fmtTime(o.time))}</dd><dt>Method</dt><dd>${esc(o.method)}</dd>${o.address?`<dt>Address</dt><dd>${esc(o.address)}</dd>`:""}${o.notes?`<dt>Notes</dt><dd>${esc(o.notes)}</dd>`:""}</dl>
+   ${o.lines.map(l=>`<div class="line"><div><b>${l.qty} × ${esc(l.name)}</b><div class="d">${esc(l.detail)}</div></div><div class="num">${peso(l.unit*l.qty)}</div></div>`).join("")}
+   <div class="total"><span>Estimated total</span><span class="price num">${peso(o.est)}</span></div>
+  </div><aside class="box"><h3>What happens next</h3>
+   <ol class="small" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px"><li>Send your order. You'll get an order reference right away.</li><li>Continue in Messenger so we can talk about your order.</li><li>We check availability and send the final total and payment details.</li><li>Your slot is reserved once we verify the required payment: a 50% down payment for regular orders, or the amount stated for promos.</li></ol>
+   <div class="err" id="rvErr" role="alert"></div>
+   <button class="btn pink" type="button" id="sendBtn">Send order</button><button class="btn ghost" type="button" id="backBtn">Back to details</button></aside></div>`;
+}
+function bindReview(){
+  const b=$("#sendBtn");if(!b)return;
+  $("#backBtn").onclick=()=>{location.hash="checkout"};
+  b.onclick=()=>{
+    if(b.disabled)return;b.disabled=true;b.textContent="Sending…";
+    const m=checkSlot(draft.date,draft.time);if(m){$("#rvErr").textContent=m;b.disabled=false;b.textContent="Send order";return}
+    const key=JSON.stringify([S.cart,draft]);
+    let ref=S.idem[key];
+    if(!ref){ref="EU-"+S.seq++;const promo=S.cart.some(l=>l.promo);
+      S.orders.unshift(Object.assign({ref,type:"order",created:Date.now(),lines:S.cart.slice(),est:cartTotal(),status:"pending",terms:{},cal:{state:"none"},msg:{summary:"waiting",payment:"none"},promo,hist:["Order submitted on the website"]},draft));S.idem[key]=ref}
+    S.cart=[];draft={};save();updateCount();location.hash="done-"+ref.slice(3);
+  };
+}
+function viewDone(ref){
+  const o=S.orders.find(x=>x.ref===ref);if(!o)return `<div class="empty">Order not found.</div>`;
+  const txt=summaryText(o);
+  return `<div class="layout2"><div class="box"><div class="eyebrow">${o.type==="catering"?"Quotation request sent":"Order sent"}</div><div class="ref num">${esc(o.ref)}</div>
+   <p>Thank you, ${esc(o.name.replace(/^Sample: /,""))}. Your ${o.type==="catering"?"request":"order"} is saved. It is <b>not reserved yet</b>. We'll confirm availability and send ${o.type==="catering"?"your quote and ":""}payment details in Messenger.</p>
+   <a class="btn pink" id="msgr" href="https://m.me/${PAGE_ID}?ref=${encodeURIComponent(o.ref)}" target="_blank" rel="noopener">Continue in Messenger</a>
+   <p class="small muted">Tap the button and press <b>Get started</b> or send any message, so our chat links to ${esc(o.ref)} and your summary appears there.</p>
+   <details><summary class="small" style="cursor:pointer;font-weight:600">Messenger didn't open or no summary appeared?</summary>
+   <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px"><p class="small">Copy your order, open our chat, then paste and send it.</p><pre class="msg">${esc(txt)}</pre><div class="actions"><a class="btn primary sm" id="cpOpen" href="https://m.me/${PAGE_ID}" target="_blank" rel="noopener">Copy order &amp; open Messenger</a></div></div></details>
+  </div><aside class="box"><h3>Keep your reference</h3><p class="small">Mention <b>${esc(o.ref)}</b> when you message or call us at <span class="num">0954 419 1533</span>. If we can't answer, please text.</p><p class="note">In this preview, the Messenger link opens the real Eurika's page but no message is sent automatically. That needs the live site connected to Meta.</p><a class="btn ghost" href="#trays">Back to menu</a></aside></div>`;
+}
+function bindDone(ref){
+  const o=S.orders.find(x=>x.ref===ref);if(!o)return;
+  const mark=s=>{if(o.msg.summary!=="linked"){o.msg.summary=s;o.hist.push(s==="linked"?"Customer tapped Continue in Messenger":"Customer used Copy Order & Open Messenger");save()}};
+  $("#msgr").addEventListener("click",()=>mark("tapped"));
+  $("#cpOpen").addEventListener("click",e=>{copy(summaryText(o),e.target);mark("fallback")});
+}
+
+/* catering */
+function viewCatering(){
+  const c=draft.cat||{pkg:"c300"};
+  return `<div class="section-head"><div><div class="eyebrow">Catering · minimum 50 guests</div><h2>Request a catering quote</h2></div><p class="muted">Every package includes 1 dessert, rice and drinks, plus a water dispenser, buffet table setup, utensils, 2 catering staff and a flower centerpiece. Transportation may apply depending on the venue.</p></div>
+  <div class="layout2"><form class="box" id="catForm" novalidate>
+   <fieldset><legend>Package</legend><div class="opts">${CATERING.map(p=>`<label class="opt"><input type="radio" name="catPkg" value="${p.id}" ${c.pkg===p.id?"checked":""}><b class="num">${peso(p.per)}</b>/head · ${p.mains} mains + ${p.sides} side${p.sides>1?"s":""}</label>`).join("")}</div></fieldset>
+   <div class="two"><label class="f">Number of guests <small>Minimum 50</small><input id="catGuests" type="number" min="50" step="1" inputmode="numeric" value="${esc(c.guests||80)}"></label>
+   <label class="f">Event date<input id="catDate" type="date" min="${iso(TODAY)}" value="${esc(c.date||addDays(14))}"></label></div>
+   <div class="two"><label class="f">Serving time<select id="catTime">${timeSlots().map(t=>`<option value="${t}" ${t===(c.time||"18:00")?"selected":""}>${fmtTime(t)}</option>`).join("")}</select></label>
+   <label class="f">Venue address<input id="catVenue" type="text" value="${esc(c.venue||"")}" placeholder="Venue name and barangay"></label></div>
+   <label class="f">Color theme <small>Your motif for the buffet setup and centerpiece, e.g. Pink and gold, Sage green and white</small><input id="catTheme" type="text" value="${esc(c.theme||"")}" placeholder="Pink and gold"></label>
+   <div id="catPicks"></div>
+   <fieldset><legend>Dessert</legend><div class="opts">${DESSERTS.map((d,i)=>`<label class="opt"><input type="radio" name="catDessert" value="${esc(d)}" ${i===0?"checked":""}>${esc(d)}</label>`).join("")}</div></fieldset>
+   <h3 style="font-size:17px">Contact details</h3>
+   <div class="two"><label class="f">Full name<input id="catName" type="text" autocomplete="name" value="${esc(c.name||"")}"></label><label class="f">Mobile number<input id="catPhone" type="tel" autocomplete="tel" placeholder="09XX XXX XXXX" value="${esc(c.phone||"")}"></label></div>
+   <div class="two"><label class="f">Facebook name <small>So we can find you in Messenger</small><input id="catFb" type="text" value="${esc(c.fb||"")}"></label><label class="f">Email <small>Optional</small><input id="catEmail" type="email" autocomplete="email" value="${esc(c.email||"")}"></label></div>
+   <div class="two"><label class="f">Contact person on event day <small>Optional, if different from you</small><input id="catAlt" type="text" value="${esc(c.alt||"")}"></label><label class="f">Their mobile number <small>Optional</small><input id="catAltPhone" type="tel" value="${esc(c.altPhone||"")}"></label></div>
+   <label class="f">Notes <small>Optional: theme, extra staff, program flow</small><textarea id="catNotes">${esc(c.notes||"")}</textarea></label>
+   <p class="note">We collect your contact details and event information only to prepare your quote. We don't share them with anyone else.</p>
+   <div class="err" id="catErr" role="alert"></div>
+   <button class="btn pink" type="submit" id="catSend">Send quotation request</button>
+  </form><aside class="box"><img src="img/catering.jpg" alt="Catering packages price list" style="border-radius:10px;border:1px solid var(--line)"><div class="total"><span>Estimated food total</span><span class="price num" id="catEst">₱0</span></div><p class="small muted">This is an estimate. Our team confirms the final quote, availability and payment terms before you pay.</p></aside></div><div style="margin-top:24px;max-width:640px">${contactBox()}</div>`;
+}
+function bindCatering(){
+  const f=$("#catForm");if(!f)return;
+  const pk=()=>CATERING.find(p=>p.id===f.querySelector("input[name=catPkg]:checked").value);
+  const renderPicks=()=>{const p=pk();$("#catPicks").innerHTML=`<div><h3 style="font-size:17px;margin-bottom:8px">Main dishes</h3>${pickGroups(MAINS,"catMain",p.mains)}</div><div style="margin-top:14px"><h3 style="font-size:17px;margin-bottom:8px">Side dishes</h3>${pickGroups(SIDES,"catSide",p.sides)}</div>`;upd()};
+  const upd=()=>{const p=pk();const g=Math.max(0,Number($("#catGuests").value)||0);$("#catEst").textContent=peso(p.per*g);
+    f.querySelectorAll("[data-counter]").forEach(c=>{const n=+c.dataset.n;const k=f.querySelectorAll(`input[name=${c.dataset.counter}]:checked`).length;c.textContent=`${k} of ${n} chosen`;c.classList.toggle("okc",k===n);f.querySelectorAll(`input[name=${c.dataset.counter}]`).forEach(i=>{i.disabled=!i.checked&&k>=n})})};
+  f.addEventListener("change",e=>{if(e.target.name==="catPkg")renderPicks();else upd()});f.addEventListener("input",upd);renderPicks();
+  f.onsubmit=e=>{e.preventDefault();const b=$("#catSend");if(b.disabled)return;
+    const p=pk();const g=Number($("#catGuests").value);const mains=[...f.querySelectorAll("input[name=catMain]:checked")].map(i=>i.value),sides=[...f.querySelectorAll("input[name=catSide]:checked")].map(i=>i.value);
+    const d={pkg:p.id,guests:g,date:$("#catDate").value,time:$("#catTime").value,venue:$("#catVenue").value.trim(),name:$("#catName").value.trim(),phone:$("#catPhone").value.trim(),notes:$("#catNotes").value.trim(),theme:$("#catTheme").value.trim(),fb:$("#catFb").value.trim(),email:$("#catEmail").value.trim(),alt:$("#catAlt").value.trim(),altPhone:$("#catAltPhone").value.trim()};
+    let m="";if(!(g>=50))m="Catering is for at least 50 guests.";else if(mains.length!==p.mains||sides.length!==p.sides)m=`Choose ${p.mains} main dishes and ${p.sides} side dish${p.sides>1?"es":""}.`;else if(!d.venue)m="Enter the venue address.";else if(!d.theme)m="Enter your color theme, or type “No preference”.";else if(!d.name)m="Enter your full name.";else if(d.phone.replace(/\D/g,"").length<10)m="Enter a valid mobile number.";else m=checkSlot(d.date,d.time);
+    $("#catErr").textContent=m;if(m){draft.cat=d;return}
+    b.disabled=true;const key=JSON.stringify([d,mains,sides]);let ref=S.idem[key];
+    if(!ref){ref="EU-"+S.seq++;S.orders.unshift({ref,type:"catering",created:Date.now(),name:d.name,phone:d.phone,date:d.date,time:d.time,method:"Catering",address:d.venue,notes:d.notes,theme:d.theme,fb:d.fb,email:d.email,alt:d.alt,altPhone:d.altPhone,guests:g,pkg:p.id,mains,sides,dessert:f.querySelector("input[name=catDessert]:checked").value,lines:[],est:p.per*g,status:"pending",terms:{},cal:{state:"none"},msg:{summary:"waiting",payment:"none"},hist:["Quotation request submitted"]});S.idem[key]=ref}
+    draft={};save();location.hash="done-"+ref.slice(3)};
+}
+
+/* contact */
+function contactBox(){
+  return `<section class="box"><h3>Contact us</h3><dl class="kv"><dt>Call or text</dt><dd class="num">0954 419 1533</dd><dt></dt><dd class="small muted">If we can't answer your call, please send a text.</dd><dt>Messenger</dt><dd><a href="https://m.me/${PAGE_ID}" target="_blank" rel="noopener">Eurika Party Trays and Catering - Butuan</a></dd><dt>Facebook</dt><dd><a href="https://www.facebook.com/share/19yWKZA2Df/" target="_blank" rel="noopener">Message Eurika directly</a></dd><dt>Pickup</dt><dd>Purok 6, Block 3 Lot 4, Balai Subd., Brgy. Bancasi, Butuan City, Agusan del Norte</dd><dt>Landmark</dt><dd>Near the Free Methodist Church crossing, on the road to Uraya</dd><dt>Orders</dt><dd>7:00 AM – 9:00 PM · Inquiries anytime</dd></dl></section>`;
+}
+/* policies */
+function viewPolicies(){
+  const P=[
+   ["Booking and payment",["Your booking is confirmed once we receive the required payment and send you a written confirmation through our official Facebook page.","Regular pickup orders require a 50% down payment to reserve your slot. The remaining balance is due upon personal pickup or before we release the order to a rider.","For catering and special promos, we'll share the required payment, due dates and any package-specific terms before you pay."]],
+   ["Pickup and rider arrangement",["Personal pickup: please collect your order at the confirmed time and location. If you're running late, message us so we can coordinate.","Book your own rider: wait for our “Ready for Pickup” message before booking. Send us the rider's name or booking details, and give your rider the name on your order.","Let Eurika book for you: we can arrange a Maxim Motorcycle or Maxim Car. We may recommend a car for whole lechon or multiple trays so they can be carried flat and securely.","The delivery fee is separate from the food total and is paid by the customer. If we book for you, we'll confirm the fare first. Any remaining food balance must be settled before we release the order to the rider."]],
+   ["Cancellation",["Message our official Facebook page with your booking name and scheduled date. Give at least 24 hours' notice for regular party trays and lechon, up to 2 days for larger orders as stated in your booking confirmation, or 7 calendar days for catering events, counted back from the confirmed pickup or event time.","We deduct only costs already incurred that we cannot recover, such as ingredients bought for your order, preparation already done or non-refundable supplier deposits. We'll send you a breakdown and refund the rest. If there are no costs, you get a full refund.","The same calculation applies to late cancellations and missed pickups. If your order is already prepared, the costs may use up the amount paid."]],
+   ["Rescheduling",["You may request one reschedule using the same notice periods. The new date depends on availability and is confirmed once we approve it in writing.","Your payment is applied to the new booking. We'll explain any extra costs caused by the change before you confirm.","Late requests are reviewed based on availability and preparations already underway. Your original schedule stays booked until we confirm the change."]],
+   ["Refunds and order concerns",["If Eurika's cancels and cannot fulfill your order, you may choose a full refund or move your payment to a new available date.","If an item is missing or incorrect, or you have a food quality, packaging or service concern, message us as soon as you notice it with your booking name, a description and photos if available. We'll arrange a remedy such as a replacement or refund. Your consumer rights apply.","Approved refunds are processed within 5–10 business days after we confirm the amount in writing, using the original payment method or another method agreed in writing."]]
+  ];
+  return `<div class="section-head"><div><div class="eyebrow">Before you order</div><h2>Booking policies</h2></div></div><div class="policy">${contactBox()}${P.map(([h,l])=>`<section class="box"><h3>${h}</h3><ul>${l.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></section>`).join("")}<section class="box"><h3>Privacy</h3><ul><li>We collect only your name, mobile number, schedule, pickup or venue details and order, to prepare and confirm your order.</li><li>We use them to contact you about this order and don't share them with anyone else.</li></ul></section></div>`;
+}
+
+/* ---------- owner ---------- */
+function eventTitle(o){
+  if(o.type==="catering")return `Catering – ${o.guests} pax – ${o.ref}`;
+  const kind=o.method===METHODS[0]?"Pickup":o.method===METHODS[2]?"Maxim delivery":"Rider pickup";
+  const what=o.lines.length===1?o.lines[0].name:o.lines[0].name+" +"+(o.lines.length-1);
+  return `${fmtTime(o.time)} ${kind} – ${what} – ${o.ref}`;
+}
+function paymentText(o){
+  const t=o.terms;const first=o.name.replace(/^Sample: /,"");
+  return `Hi ${first}! Salamat kaayo sa imong ${o.type==="catering"?"catering booking":"order"} sa Eurika's Party Trays & Catering. 😊
+
+Order Ref: ${o.ref}
+Schedule: ${fmtDate(o.date)} · ${fmtTime(o.time)}${o.type==="catering"?"\nVenue: "+o.address:"\nMethod: "+o.method}
+
+Final total: ${peso(t.final)}
+Amount due now: ${peso(t.due)}${t.balance>0?`\nRemaining balance: ${peso(t.balance)}${t.balanceDue?" – "+t.balanceDue:""}`:"\nThis is full payment."}${t.deadline?`\nPalihug bayad on or before ${fmtDate(t.deadline)}.`:""}
+
+Payment options:
+${PAY.map(p=>`• ${p[0]} – ${p[1]} – ${p[2]}`).join("\n")}
+
+Palihug i-send ang screenshot sa imong payment dinhi sa chat. Ma-reserve ang imong slot once ma-verify na namo ang payment. Salamat! 💕`;
+}
+function ownerLogin(){
+  return `<div class="box" style="max-width:420px;margin:30px auto"><div class="eyebrow">Owner dashboard</div><h2>Sign in</h2><p class="small muted">In the live site, only your account can open this page.</p><form id="loginF" class="box" style="border:0;padding:0"><label class="f">PIN <small>Preview PIN: 2017</small><input id="pin" type="password" inputmode="numeric" autocomplete="off"></label><div class="err" id="pinErr" role="alert"></div><button class="btn primary" type="submit">Open dashboard</button></form></div>`;
+}
+function viewOwner(){
+  if(!S.owner)return ownerLogin();
+  const tabs=[["orders","Orders"],["calendar","Calendar"],["menu","Menu & promos"],["settings","Settings"]];
+  const pend=S.orders.filter(o=>o.status==="pending").length,aw=S.orders.filter(o=>o.status==="await").length,rs=S.orders.filter(o=>o.status==="reserved"&&o.date>=iso(TODAY)).length,fl=S.orders.filter(needsAttention).length;
+  let body="";
+  if(S.otab==="orders")body=ownerOrders();
+  if(S.otab==="calendar")body=ownerCalendar();
+  if(S.otab==="menu")body=ownerMenu();
+  if(S.otab==="settings")body=ownerSettings();
+  return `<div class="section-head"><div><div class="eyebrow">Owner dashboard</div><h2>Orders &amp; bookings</h2></div><button class="btn sm ghost" type="button" id="logout">Sign out</button></div>
+  <div class="stats"><div class="stat"><b class="num">${pend}</b><span>Pending review</span></div><div class="stat"><b class="num">${aw}</b><span>Awaiting payment</span></div><div class="stat"><b class="num">${rs}</b><span>Reserved, upcoming</span></div><div class="stat"><b class="num" style="color:${fl?"var(--bad)":"inherit"}">${fl}</b><span>Need attention</span></div></div>
+  <div class="otabs" role="tablist">${tabs.map(([k,l])=>`<button type="button" data-otab="${k}" aria-pressed="${S.otab===k}">${l}</button>`).join("")}</div>${body}`;
+}
+function needsAttention(o){return o.cal.state==="failed"||o.msg.payment==="failed"||(o.status!=="cancel"&&o.msg.summary==="fallback")}
+function ownerOrders(){
+  const F=[["all","All"],["pending","Pending review"],["await","Awaiting payment"],["reserved","Reserved"],["cancel","Cancelled"]];
+  const list=S.orders.filter(o=>S.filter==="all"||o.status===S.filter).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const sel=S.orders.find(o=>o.ref===S.sel)||list[0];
+  return `<div class="olayout"><div><div class="opts" style="margin-bottom:12px"><label class="f" style="flex:1;min-width:200px">Find by reference or name<input id="ofind" type="text" placeholder="EU-1043"></label></div>
+   <div class="opts" style="margin-bottom:12px">${F.map(([k,l])=>`<button class="btn sm ${S.filter===k?"primary":""}" type="button" data-filter="${k}">${l}</button>`).join("")}</div>
+   <div class="olist" id="olist">${list.map(o=>`<button class="orow" type="button" data-sel="${o.ref}" aria-current="${sel&&sel.ref===o.ref}" data-s="${esc((o.ref+" "+o.name).toLowerCase())}"><span class="r">${o.ref}</span><span class="who">${esc(o.name)}</span>${pill(o.status)}<span class="sub"><span>${o.type==="catering"?"Catering quote · "+o.guests+" pax":esc(o.lines.map(l=>l.name).join(", "))}</span><span>${esc(fmtDate(o.date))} · ${fmtTime(o.time)}</span><span class="num">${peso(o.terms.final||o.est)}</span>${needsAttention(o)?`<span class="pill flag">Needs attention</span>`:""}</span></button>`).join("")||`<div class="empty">No orders here.</div>`}</div></div>
+   <div>${sel?ownerDetail(sel):""}</div></div>`;
+}
+function ownerDetail(o){
+  const t=o.terms;const final=t.final!=null?t.final:o.est;
+  const due=t.due!=null?t.due:Math.round(final*.5);
+  const items=o.type==="catering"?(()=>{const pk=CATERING.find(c=>c.id===o.pkg);return `<dl class="kv"><dt>Package</dt><dd>${peso(pk.per)}/head · ${pk.mains} mains + ${pk.sides} side${pk.sides>1?"s":""}</dd><dt>Guests</dt><dd>${o.guests}</dd><dt>Color theme</dt><dd>${esc(o.theme||"Not specified")}</dd>${o.fb?`<dt>Facebook</dt><dd>${esc(o.fb)}</dd>`:""}${o.email?`<dt>Email</dt><dd>${esc(o.email)}</dd>`:""}${o.alt?`<dt>Event-day contact</dt><dd>${esc(o.alt)}${o.altPhone?" · "+esc(o.altPhone):""}</dd>`:""}<dt>Mains</dt><dd>${esc(o.mains.join(", "))}</dd><dt>Sides</dt><dd>${esc(o.sides.join(", "))}</dd><dt>Dessert</dt><dd>${esc(o.dessert)}</dd></dl>`})():o.lines.map(l=>`<div class="line"><div><b>${l.qty} × ${esc(l.name)}</b>${l.promo?` <span class="save">Promo</span>`:""}<div class="d">${esc(l.detail)}</div></div><div class="num">${peso(l.unit*l.qty)}</div></div>`).join("");
+  const msgState={linked:"Summary sent in Messenger",tapped:"Customer opened Messenger; waiting for them to tap Get started",waiting:"Customer hasn't opened Messenger yet",fallback:"Automatic handoff not completed. Customer was asked to paste the summary."}[o.msg.summary];
+  const calState={none:"Not on calendar yet",synced:`On Google Calendar: ${esc(eventTitle(o))}`,failed:"Google Calendar sync failed"}[o.cal.state];
+  const editable=o.status==="pending"||o.status==="await";
+  return `<div class="box"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><div><div class="eyebrow">${o.type==="catering"?"Quotation request":"Order"}</div><h3 class="num">${o.ref}</h3></div>${pill(o.status)}</div>
+   <dl class="kv"><dt>Customer</dt><dd>${esc(o.name)}</dd><dt>Mobile</dt><dd class="num">${esc(o.phone)}</dd><dt>${o.type==="catering"?"Event":"Pickup"}</dt><dd>${esc(fmtDate(o.date))} · ${fmtTime(o.time)}</dd><dt>${o.type==="catering"?"Venue":"Method"}</dt><dd>${esc(o.type==="catering"?o.address:o.method)}${o.type!=="catering"&&o.address?"<br>"+esc(o.address):""}</dd>${o.notes?`<dt>Notes</dt><dd>${esc(o.notes)}</dd>`:""}<dt>Messenger</dt><dd>${msgState}</dd><dt>Calendar</dt><dd>${calState}</dd></dl>
+   ${items}<div class="total"><span>Customer estimate</span><span class="num">${peso(o.est)}</span></div>
+   ${o.status!=="cancel"?`<div class="box" style="background:var(--sunk)"><h3 style="font-size:17px">Payment terms</h3>
+     <div class="two"><label class="f">Final total<input id="tFinal" type="number" min="0" value="${final}"></label><label class="f">Amount due now<input id="tDue" type="number" min="0" value="${due}"></label></div>
+     <div class="opts"><button class="btn sm" type="button" data-preset="0.5">50% down</button><button class="btn sm" type="button" data-preset="1">Full payment</button></div>
+     <div class="two"><label class="f">Remaining balance<input id="tBal" type="number" min="0" value="${final-due}" readonly></label><label class="f">Pay by <small>Optional deadline</small><input id="tDead" type="date" value="${esc(t.deadline||"")}"></label></div>
+     <label class="f">Balance due<input id="tBalDue" type="text" value="${esc(t.balanceDue!=null?t.balanceDue:(o.type==="catering"?"":"Upon pickup or before rider release"))}" placeholder="${o.type==="catering"?"e.g. 3 days before the event":""}"></label>
+     ${editable?"":`<p class="small muted">Terms are locked once reserved. Reschedule or cancel below.</p>`}</div>`:""}
+   ${o.status==="await"||(o.msg.payment!=="none"&&o.status!=="cancel")?`<div class="box"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h3 style="font-size:17px">Payment message</h3>${o.msg.payment==="failed"?`<span class="pill flag">Not delivered</span>`:`<span class="pill st-reserved">Sent in Messenger</span>`}</div>${o.msg.payment==="failed"?`<p class="small">Messenger couldn't deliver this automatically. The customer last messaged more than 24 hours ago. Copy the reply below and send it yourself.</p>`:""}<pre class="msg">${esc(paymentText(o))}</pre><div class="actions"><button class="btn sm" type="button" id="cpPay">Copy reply</button></div></div>`:""}
+   <div class="actions">
+    ${o.status==="pending"?`<button class="btn pink" type="button" data-act="approve">Approve &amp; send payment details</button>`:""}
+    ${o.status==="await"?`<button class="btn pink" type="button" data-act="reserve">Payment verified → Reserve</button>`:""}
+    ${o.cal.state==="failed"?`<button class="btn" type="button" data-act="retry">Retry sync</button>`:""}
+    ${o.status!=="cancel"?`<button class="btn" type="button" data-act="resched">Reschedule</button><button class="btn ghost" type="button" data-act="cancel">Cancel booking</button>`:""}
+   </div>
+   <div id="actPanel"></div>
+   <details><summary class="small" style="cursor:pointer;font-weight:600">History and customer summary</summary><ul class="hist">${o.hist.map(h=>`<li>${esc(h)}</li>`).join("")}</ul><pre class="msg" style="margin-top:10px">${esc(summaryText(o))}</pre></details>
+  </div>`;
+}
+function bindOwner(){
+  const lf=$("#loginF");if(lf){lf.onsubmit=e=>{e.preventDefault();if($("#pin").value==="2017"){S.owner=true;save();render()}else $("#pinErr").textContent="That PIN is incorrect."};return}
+  $("#logout").onclick=()=>{S.owner=false;save();render()};
+  document.querySelectorAll("[data-otab]").forEach(b=>b.onclick=()=>{S.otab=b.dataset.otab;save();render()});
+  document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{S.filter=b.dataset.filter;save();render()});
+  document.querySelectorAll("[data-sel]").forEach(b=>b.onclick=()=>{S.sel=b.dataset.sel;save();render();if(innerWidth<900)document.querySelector(".olayout>div:last-child")?.scrollIntoView({behavior:"smooth"})});
+  const of=$("#ofind");if(of)of.oninput=()=>{const q=of.value.trim().toLowerCase();document.querySelectorAll("#olist .orow").forEach(r=>r.hidden=q&&!r.dataset.s.includes(q))};
+  const o=S.orders.find(x=>x.ref===S.sel)||S.orders.filter(o=>S.filter==="all"||o.status===S.filter).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];
+  if(S.otab==="orders"&&o){
+    const tf=$("#tFinal"),td=$("#tDue"),tb=$("#tBal");
+    const lock=!(o.status==="pending"||o.status==="await");
+    if(tf){[tf,td,$("#tDead"),$("#tBalDue")].forEach(i=>i.disabled=lock);
+      const rec=()=>{tb.value=Math.max(0,(+tf.value||0)-(+td.value||0))};tf.oninput=rec;td.oninput=rec;
+      document.querySelectorAll("[data-preset]").forEach(b=>{b.disabled=lock;b.onclick=()=>{td.value=Math.round((+tf.value||0)*Number(b.dataset.preset));rec()}});}
+    const readTerms=()=>{const f=+tf.value||0,d=+td.value||0;return{final:f,due:d,balance:Math.max(0,f-d),deadline:$("#tDead").value,balanceDue:$("#tBalDue").value.trim()}};
+    const cp=$("#cpPay");if(cp)cp.onclick=e=>copy(paymentText(o),e.target);
+    document.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>{
+      const a=b.dataset.act;b.disabled=true;
+      if(a==="approve"){const t=readTerms();if(!(t.final>0)||!(t.due>0)||t.due>t.final){toast("Enter a final total and an amount due now");b.disabled=false;return}
+        o.terms=t;o.status="await";const late=o.msg.summary!=="linked";o.msg.payment=late?"failed":"sent";
+        o.hist.push("Approved with final total "+peso(t.final)+", "+peso(t.due)+" due now");o.hist.push(late?"Payment message not delivered automatically; copy-ready reply prepared":"Payment instructions sent in Messenger");
+        toast(late?"Approved. Send the payment message yourself.":"Approved. Payment details sent in Messenger.")}
+      if(a==="reserve"){o.status="reserved";o.hist.push("Payment verified, booking reserved");syncCal(o,"create")}
+      if(a==="retry"){syncCal(o,o.cal.id?"update":"create",true)}
+      if(a==="cancel"){$("#actPanel").innerHTML=`<div class="box" style="background:var(--bad-soft)"><p><b>Cancel ${o.ref}?</b> The customer isn't messaged automatically. Send them the cancellation breakdown in Messenger.</p><div class="actions"><button class="btn primary sm" type="button" id="cYes">Yes, cancel booking</button><button class="btn sm" type="button" id="cNo">Keep booking</button></div></div>`;
+        $("#cNo").onclick=()=>{$("#actPanel").innerHTML="";b.disabled=false};$("#cYes").onclick=()=>{o.status="cancel";o.hist.push("Booking cancelled");if(o.cal.id){o.hist.push("Removed Google Calendar event "+o.cal.id);o.cal={state:"none"}}save();render();toast("Booking cancelled")};return}
+      if(a==="resched"){$("#actPanel").innerHTML=`<div class="box"><div class="two"><label class="f">New date<input id="rDate" type="date" value="${o.date}"></label><label class="f">New time<select id="rTime">${timeSlots().map(t=>`<option value="${t}" ${t===o.time?"selected":""}>${fmtTime(t)}</option>`).join("")}</select></label></div><div class="err" id="rErr"></div><div class="actions"><button class="btn primary sm" type="button" id="rSave">Save new schedule</button><button class="btn sm" type="button" id="rNo">Close</button></div></div>`;
+        $("#rNo").onclick=()=>{$("#actPanel").innerHTML="";b.disabled=false};$("#rSave").onclick=()=>{const d=$("#rDate").value,tm=$("#rTime").value;if(S.settings.blocked.includes(d)){$("#rErr").textContent="That date is blocked. Unblock it in Settings first.";return}const old=fmtDate(o.date)+" "+fmtTime(o.time);o.date=d;o.time=tm;o.hist.push("Rescheduled from "+old+" to "+fmtDate(d)+" "+fmtTime(tm));if(o.status==="reserved")syncCal(o,"update");save();render();toast("Schedule updated")};return}
+      save();render();
+    });
+  }
+  if(S.otab==="calendar"){document.querySelectorAll("[data-mo]").forEach(b=>b.onclick=()=>{const[y,m]=S.calMonth.split("-").map(Number);const d=new Date(y,m-1+Number(b.dataset.mo),1);S.calMonth=iso(d).slice(0,7);save();render()});
+    document.querySelectorAll(".ev[data-sel]").forEach(b=>b.onclick=()=>{S.sel=b.dataset.sel;S.otab="orders";S.filter="all";save();render()})}
+  if(S.otab==="menu"){document.querySelectorAll("[data-mp]").forEach(i=>i.onchange=()=>{const[id,k]=i.dataset.mp.split("|");const p=prod(id);const v=Math.max(0,Math.round(+i.value||0));if(k==="price")p.price=v;else p.sizes.find(s=>s.k===k).price=v;save();toast("Price saved")});
+    document.querySelectorAll("[data-mon]").forEach(i=>i.onchange=()=>{prod(i.dataset.mon).off=!i.checked;save();toast(i.checked?"Shown on the menu":"Hidden from the menu")});
+    document.querySelectorAll("[data-mu]").forEach(i=>i.onchange=()=>{prod(i.dataset.mu).until=i.value||undefined;save();toast("Promo end date saved")})}
+  if(S.otab==="settings"){$("#bAdd").onclick=()=>{const d=$("#bDate").value;if(d&&!S.settings.blocked.includes(d)){S.settings.blocked.push(d);S.settings.blocked.sort();save();render();toast("Date blocked")}};
+    document.querySelectorAll("[data-unb]").forEach(b=>b.onclick=()=>{S.settings.blocked=S.settings.blocked.filter(x=>x!==b.dataset.unb);save();render()});
+    $("#sLead").onchange=e=>{S.settings.lead=Math.max(0,+e.target.value||0);save();toast("Lead time saved")};
+    $("#sRem").onchange=e=>{S.settings.reminders=e.target.value;save();toast("Reminders saved")}}
+}
+function syncCal(o,mode,retry){
+  // Preview: simulates Google Calendar. One event per booking, reused on retry so nothing duplicates.
+  if(!o.cal.id)o.cal.id="evt_"+o.ref.slice(3);
+  o.cal.state="synced";
+  o.hist.push((mode==="update"?"Updated":"Added")+" Google Calendar event "+o.cal.id+": "+eventTitle(o)+(retry?" (retry)":""));
+  toast(mode==="update"?"Calendar event updated":"Added to Google Calendar");
+}
+function ownerCalendar(){
+  const[y,m]=S.calMonth.split("-").map(Number);const first=new Date(y,m-1,1);const start=new Date(first);start.setDate(1-first.getDay());
+  const cells=[];for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);cells.push(d)}
+  const by={};S.orders.filter(o=>o.status!=="cancel").forEach(o=>{(by[o.date]=by[o.date]||[]).push(o)});
+  const cls={pending:"pending",await:"await",reserved:"reserved"};
+  return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap"><button class="btn sm" type="button" data-mo="-1" aria-label="Previous month">‹</button><h3>${first.toLocaleDateString("en-US",{month:"long",year:"numeric"})}</h3><button class="btn sm" type="button" data-mo="1" aria-label="Next month">›</button><span class="spacer"></span><span class="small muted">Times in Asia/Manila</span></div>
+  <div class="calwrap"><div class="cal">${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d=>`<div class="dh">${d}</div>`).join("")}${cells.map(d=>{const k=iso(d);const ev=(by[k]||[]).sort((a,b)=>a.time.localeCompare(b.time));return `<div class="day ${d.getMonth()!==m-1?"out":""} ${k===iso(TODAY)?"today":""} ${S.settings.blocked.includes(k)?"blocked":""}"><span class="n">${d.getDate()}${S.settings.blocked.includes(k)?" · Full":""}</span>${ev.map(o=>`<button class="ev ${cls[o.status]}" type="button" data-sel="${o.ref}" title="${esc(eventTitle(o))}">${o.type==="catering"?"Catering "+o.guests+" pax":fmtTime(o.time)+" "+esc(o.lines[0].name)} · ${o.ref}</button>`).join("")}</div>`}).join("")}</div></div>
+  <div class="legend"><span><span class="pill st-reserved">Reserved</span> synced to Google Calendar</span><span><span class="pill st-await">Awaiting payment</span></span><span><span class="pill st-pending">Pending review</span></span><span>Striped day = fully booked</span></div>`;
+}
+function ownerMenu(){
+  const rows=S.menu.map(p=>{const prices=p.sizes?p.sizes.map(s=>`<label class="small" style="display:flex;flex-direction:column;gap:2px">${esc(s.label)}<input type="number" min="0" value="${s.price}" data-mp="${p.id}|${s.k}"></label>`).join(""):`<label class="small" style="display:flex;flex-direction:column;gap:2px">${p.kind==="dessert"?"Per cup":"Price"}<input type="number" min="0" value="${p.price}" data-mp="${p.id}|price"></label>`;
+    return `<tr><td><b>${esc(p.name)}</b><div class="small muted">${esc(p.group)}</div></td><td><div style="display:flex;gap:8px;flex-wrap:wrap">${prices}</div></td><td>${p.group.includes("Promo")||p.group.includes("package")?`<input type="date" value="${esc(p.until||"")}" data-mu="${p.id}" aria-label="Promo end date">`:`<span class="small muted">—</span>`}</td><td><label class="opt" style="display:inline-flex"><input type="checkbox" data-mon="${p.id}" ${p.off?"":"checked"}>Show</label></td></tr>`}).join("");
+  return `<p class="small muted" style="margin-bottom:12px">Changes save right away and show on the customer menu. Leave the end date blank for promos with no end date.</p><div class="tablewrap"><table class="menu"><thead><tr><th>Item</th><th>Prices (₱)</th><th>Promo ends</th><th>On menu</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function ownerSettings(){
+  return `<div class="layout2"><div class="box"><h3>Fully booked dates</h3><p class="small muted">Customers can't choose these dates.</p><div class="opts">${S.settings.blocked.map(d=>`<span class="chip">${esc(fmtDate(d))} <button class="x" type="button" data-unb="${d}" aria-label="Unblock ${esc(fmtDate(d))}" style="font-size:16px;padding:0 4px">×</button></span>`).join("")||`<span class="small muted">No blocked dates.</span>`}</div><div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap"><label class="f" style="flex:1;min-width:160px">Block a date<input id="bDate" type="date" min="${iso(TODAY)}"></label><button class="btn primary" type="button" id="bAdd">Block date</button></div>
+   <h3 style="margin-top:8px">Booking rules</h3><label class="f">Lead time in hours <small>Orders and catering must be placed at least this far ahead</small><input id="sLead" type="number" min="0" value="${S.settings.lead}"></label><p class="small">Order hours: 7:00 AM – 9:00 PM · Food trays: no minimum · Catering: minimum 50 guests</p></div>
+   <div class="box"><h3>Connections</h3><dl class="kv"><dt>Messenger</dt><dd>Eurika Party Trays and Catering - Butuan <span class="pill st-pending">Needs live setup</span></dd><dt>Google Calendar</dt><dd>Eurika Orders &amp; Events <span class="pill st-pending">Needs live setup</span></dd><dt>New order alerts</dt><dd>Email and phone notification <span class="pill st-pending">Needs live setup</span></dd></dl>
+   <label class="f">Default calendar reminders<input id="sRem" type="text" value="${esc(S.settings.reminders)}"></label>
+   <h3 style="margin-top:8px">Payment details used in messages</h3><dl class="kv">${PAY.map(p=>`<dt>${esc(p[0])}</dt><dd>${esc(p[1])} · <span class="num">${esc(p[2])}</span></dd>`).join("")}</dl><p class="small muted">These appear only in payment messages after you approve an order, not on the public menu.</p></div></div>`;
+}
+
+/* ---------- router ---------- */
+function render(){
+  const h=(location.hash||"#trays").slice(1);let html="",after=null,tab=h;
+  if(h==="trays"||h===""){html=viewTrays();tab="trays"}
+  else if(h==="lechon")html=viewLechon();
+  else if(h==="catering"){html=viewCatering();after=bindCatering}
+  else if(h==="policies")html=viewPolicies();
+  else if(h==="checkout"){html=viewCheckout();after=bindCheckout;tab=""}
+  else if(h==="review"){html=viewReview();after=draft.name?bindReview:bindCheckout;tab=""}
+  else if(h.startsWith("done-")){const r="EU-"+h.slice(5);html=viewDone(r);after=()=>bindDone(r);tab=""}
+  else if(h==="owner"){html=viewOwner();after=bindOwner}
+  else {html=viewTrays();tab="trays"}
+  $("#view").innerHTML=html;
+  document.querySelectorAll("#tabs a").forEach(a=>a.setAttribute("aria-current",a.getAttribute("href")==="#"+tab?"page":"false"));
+  document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>openAdd(b.dataset.add));
+  if(after)after();updateCount();
+}
+let lastHash=location.hash;
+addEventListener("hashchange",()=>{const ownerOnly=lastHash==="#owner"&&location.hash==="#owner";lastHash=location.hash;render();if(!ownerOnly)scrollTo(0,0)});
+$("#cartBtn").onclick=openCart;
+$("#resetBtn").onclick=()=>{S=fresh();draft={};save();render();toast("Test data reset")};
+render();
+})();
+</script>
+</body>
+</html>
