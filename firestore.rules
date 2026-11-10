@@ -1,0 +1,84 @@
+rules_version = '2';
+
+// Eurika's order security rules.
+// - Customers (no sign-in) may ONLY create a new order or quotation request in the shape the website sends.
+//   They can never read, list, change or delete any order, including their own.
+// - Only accounts listed in the "owners" collection can read and manage orders and change the menu/settings.
+// - Everything else is denied.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/owners/$(request.auth.uid));
+    }
+
+    function text(v, max) { return v is string && v.size() <= max; }
+    function filled(v, max) { return text(v, max) && v.trim().size() > 0; }
+    function optText(d, key, max) { return !(key in d) || text(d[key], max); }
+
+    function validCatering(d) {
+      return d.method == 'Catering'
+        && d.lines.size() == 0
+        && d.guests is int && d.guests >= 50 && d.guests <= 5000
+        && filled(d.pkg, 20)
+        && d.mains is list && d.mains.size() >= 1 && d.mains.size() <= 6
+        && d.sides is list && d.sides.size() >= 1 && d.sides.size() <= 6
+        && filled(d.dessert, 80)
+        && filled(d.address, 300)
+        && optText(d, 'theme', 200) && optText(d, 'fb', 200) && optText(d, 'email', 200)
+        && optText(d, 'alt', 200) && optText(d, 'altPhone', 30);
+    }
+
+    function validTrayOrder(d) {
+      return d.lines.size() >= 1
+        && !d.keys().hasAny(['guests', 'pkg', 'mains', 'sides', 'dessert', 'theme', 'fb', 'email', 'alt', 'altPhone']);
+    }
+
+    function validNewOrder(id) {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['ref', 'type', 'created', 'name', 'phone', 'date', 'time', 'method', 'address', 'notes',
+                               'lines', 'est', 'promo', 'status', 'terms', 'cal', 'msg', 'hist',
+                               'guests', 'pkg', 'mains', 'sides', 'dessert', 'theme', 'fb', 'email', 'alt', 'altPhone'])
+        && d.keys().hasAll(['ref', 'type', 'created', 'name', 'phone', 'date', 'time', 'method', 'lines', 'est',
+                            'status', 'terms', 'cal', 'msg', 'hist'])
+        && id.matches('EU-[A-Z0-9]{6}') && d.ref == id
+        && d.type in ['order', 'catering']
+        && d.created == request.time
+        && d.status == 'pending'
+        && d.terms == {}
+        && d.cal == {'state': 'none'}
+        && d.msg == {'summary': 'waiting', 'payment': 'none'}
+        && d.hist is list && d.hist.size() == 1 && text(d.hist[0], 100)
+        && filled(d.name, 120)
+        && filled(d.phone, 30)
+        && d.date is string && d.date.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && d.time is string && d.time.matches('[0-9]{2}:[0-9]{2}')
+        && filled(d.method, 60)
+        && optText(d, 'address', 300)
+        && optText(d, 'notes', 1000)
+        && d.lines is list && d.lines.size() <= 50
+        && d.est is number && d.est >= 0 && d.est <= 10000000
+        && (!('promo' in d) || d.promo is bool)
+        && (d.type == 'catering' ? validCatering(d) : validTrayOrder(d));
+    }
+
+    match /orders/{id} {
+      // setDoc on an existing reference counts as an update, so customers can't overwrite orders either.
+      allow create: if validNewOrder(id);
+      allow read, update, delete: if isOwner();
+    }
+
+    // Menu prices, sold-out flags, promo end dates and booking settings shown on the public site.
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    // Owner accounts are added by hand in the Firebase console. The website only checks its own entry.
+    match /owners/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, write: if false;
+    }
+  }
+}

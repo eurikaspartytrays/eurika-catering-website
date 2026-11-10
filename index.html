@@ -206,7 +206,7 @@ table.menu input[type=number]{width:110px;padding:6px 8px}
     <a href="#trays">Party Trays</a><a href="#lechon">Lechon</a><a href="#catering">Catering</a><a href="#policies">Contact &amp; Policies</a><a href="#owner">Owner</a>
   </nav></div></div>
 </header>
-<div class="preview-note"><div class="wrap"><b>Preview with test data.</b><span>Orders placed here stay in this browser and are not sent to Eurika's.</span><button class="btn sm ghost" id="resetBtn" type="button">Reset test data</button></div></div>
+<div class="preview-note" id="offlineNote" hidden><div class="wrap"><b>Online ordering isn't connected yet.</b><span>Please call or text 0954 419 1533, or message us on Facebook, to place your order.</span></div></div>
 
 <main><div class="wrap" id="view"></div></main>
 <footer><div class="wrap">
@@ -216,6 +216,7 @@ table.menu input[type=number]{width:110px;padding:6px 8px}
 </div></footer>
 <div id="layer"></div>
 
+<script src="firebase-config.js"></script>
 <script>
 (function(){
 "use strict";
@@ -275,21 +276,103 @@ const PAGE_ID = "1719414398357093";
 const TODAY = new Date();
 const iso = d=>{const z=new Date(d);return z.getFullYear()+"-"+String(z.getMonth()+1).padStart(2,"0")+"-"+String(z.getDate()).padStart(2,"0")};
 const addDays=(n)=>{const d=new Date(TODAY);d.setDate(d.getDate()+n);return iso(d)};
-function sampleOrders(){
-  return [
-   {ref:"EU-1040",type:"order",sample:true,created:Date.now()-3600e3*5,name:"Sample: Ana Reyes",phone:"0917 000 0001",date:addDays(4),time:"10:00",method:METHODS[0],address:"",notes:"",lines:[{pid:"p4299a",name:"4-Tray Package A",detail:"25 pax · Medium trays",unit:4299,qty:1,promo:true}],est:4299,status:"pending",terms:{},cal:{state:"none"},msg:{summary:"linked",payment:"none"},hist:["Order submitted on the website","Summary sent in Messenger"]},
-   {ref:"EU-1041",type:"order",sample:true,created:Date.now()-3600e3*28,name:"Sample: Mark Dela Cruz",phone:"0917 000 0002",date:addDays(6),time:"15:30",method:METHODS[2],address:"Km. 5, Libertad, Butuan City",notes:"Please slice the lechon.",lines:[{pid:"whole",name:"Classic Whole Lechon",detail:"18 kg",unit:7000,qty:1},{pid:"pasta",name:"Pasta Trays",detail:"Creamy Chicken Spaghetti · Medium · 25 pax",unit:990,qty:1}],est:7990,status:"await",terms:{final:7990,due:3995,balance:3995,balanceDue:"Upon pickup or before rider release",deadline:addDays(2)},cal:{state:"none"},msg:{summary:"linked",payment:"sent"},hist:["Order submitted on the website","Summary sent in Messenger","Approved, payment instructions sent in Messenger"]},
-   {ref:"EU-1042",type:"order",sample:true,created:Date.now()-3600e3*60,name:"Sample: Joy Santos",phone:"0917 000 0003",date:addDays(10),time:"10:00",method:METHODS[0],address:"",notes:"",lines:[{pid:"lpp",name:"Lechon Party Package",detail:"30–35 pax",unit:9999,qty:1,promo:true}],est:9999,status:"reserved",terms:{final:9999,due:9999,balance:0,balanceDue:"",deadline:""},cal:{state:"synced",id:"evt_1042"},msg:{summary:"linked",payment:"sent"},hist:["Order submitted on the website","Approved, payment instructions sent in Messenger","Full payment verified, booking reserved","Added to Google Calendar"]},
-   {ref:"EU-1043",type:"catering",sample:true,created:Date.now()-3600e3*2,name:"Sample: Butuan Rotary Club",phone:"0917 000 0004",date:addDays(19),time:"18:00",method:"Catering",address:"Almont Inland Resort function hall, Butuan City",notes:"Induction night. Need 2 extra staff if possible.",theme:"Royal blue and gold",fb:"Butuan Rotary Club",alt:"Sample: Ramon Lim",altPhone:"0917 000 0006",guests:88,pkg:"c300",mains:["Chicken Cordon Bleu","Beef Steak","Garlic Buttered Shrimp"],sides:["Four Seasons","Creamy Spaghetti"],dessert:"Mango Pandan & Gulaman",lines:[],est:26400,status:"pending",terms:{},cal:{state:"none"},msg:{summary:"fallback",payment:"none"},hist:["Quotation request submitted","Messenger handoff not completed; customer saw Copy Order & Open Messenger"]},
-   {ref:"EU-1039",type:"order",sample:true,created:Date.now()-3600e3*90,name:"Sample: Leah Ong",phone:"0917 000 0005",date:addDays(3),time:"17:00",method:METHODS[1],address:"",notes:"",lines:[{pid:"p2999b",name:"Small Party Package B",detail:"15 pax",unit:2999,qty:1,promo:true}],est:2999,status:"reserved",terms:{final:2999,due:1500,balance:1499,balanceDue:"Upon pickup or before rider release",deadline:""},cal:{state:"failed"},msg:{summary:"linked",payment:"sent"},hist:["Order submitted on the website","Down payment verified, booking reserved","Google Calendar sync failed"]}
-  ];
-}
-const KEY="eurika-preview-v1";
+const DEFAULT_SETTINGS={lead:24,open:"07:00",close:"21:00",blocked:[],reminders:"1 day before, 2 hours before"};
+// Only the cart, the customer's own order receipts and dashboard view choices stay in this browser.
+// Orders, menu changes and settings live in Firebase.
+const KEY="eurika-v2";
+const LOCAL_KEYS=["cart","mine","otab","filter","sel","calMonth"];
 let S;
-function fresh(){return {cart:[],orders:sampleOrders(),seq:1044,menu:JSON.parse(JSON.stringify(DEFAULT_MENU)),settings:{lead:24,open:"07:00",close:"21:00",blocked:[addDays(15)],reminders:"1 day before, 2 hours before"},owner:false,sel:"EU-1040",otab:"orders",calMonth:iso(TODAY).slice(0,7),filter:"all",idem:{}}}
-function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&o.orders&&o.menu)return Object.assign(fresh(),o)}}catch(e){}return fresh()}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-S=load();
+function fresh(){return {cart:[],mine:{},orders:[],menu:[],settings:JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),otab:"orders",filter:"all",sel:null,calMonth:iso(TODAY).slice(0,7),auth:{state:"loading"},loginMsg:"",ordersErr:""}}
+function load(){const s=fresh();try{localStorage.removeItem("eurika-preview-v1");const r=JSON.parse(localStorage.getItem(KEY)||"null");if(r)LOCAL_KEYS.forEach(k=>{if(r[k]!=null)s[k]=r[k]})}catch(e){}return s}
+function save(){try{const o={};LOCAL_KEYS.forEach(k=>o[k]=S[k]);localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
+function applyMenu(ov){
+  S.menu=DEFAULT_MENU.map(p=>{const c=JSON.parse(JSON.stringify(p));const o=ov&&ov[p.id];
+    if(o&&typeof o==="object"){
+      if(typeof o.price==="number"&&c.price!=null)c.price=o.price;
+      if(o.sizes&&c.sizes)c.sizes.forEach(s=>{if(typeof o.sizes[s.k]==="number")s.price=o.sizes[s.k]});
+      if(o.off===true)c.off=true;
+      if(typeof o.until==="string")c.until=o.until||undefined;
+    }return c});
+}
+function applyConfig(d){
+  const st=Object.assign({},DEFAULT_SETTINGS,(d&&d.settings)||{});
+  if(!(typeof st.lead==="number"&&st.lead>=0))st.lead=DEFAULT_SETTINGS.lead;
+  if(!Array.isArray(st.blocked))st.blocked=[];
+  S.settings=st;applyMenu(d&&d.menu);
+}
+S=load();applyMenu(null);
+
+/* ---------- Firebase ---------- */
+const FB_VERSION="13.2.0";
+const CFG=window.EURIKA_FIREBASE||{};
+const TEST=window.EURIKA_FIREBASE_TEST||{};
+const LIVE=!!(CFG.apiKey&&CFG.projectId&&!/PASTE/i.test(CFG.apiKey+CFG.projectId));
+const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej({code:"timeout"}),ms))]);
+const fbReady=(async()=>{
+  if(!LIVE)throw {code:"not-configured"};
+  const B="https://www.gstatic.com/firebasejs/"+FB_VERSION+"/";
+  const [app,fs,au]=await Promise.all([import(B+"firebase-app.js"),import(B+"firebase-firestore.js"),import(B+"firebase-auth.js")]);
+  const a=app.initializeApp(CFG);const db=fs.getFirestore(a);const auth=au.getAuth(a);
+  if(TEST.emulatorHost){fs.connectFirestoreEmulator(db,TEST.emulatorHost,8080);au.connectAuthEmulator(auth,"http://"+TEST.emulatorHost+":9099",{disableWarnings:true})}
+  return {db,fs,auth,au};
+})();
+fbReady.catch(()=>{});
+const SEND_TIMEOUT=TEST.sendTimeoutMs||30000;
+// Order references are random so phones never need to read other orders to pick a number.
+const REF_CHARS="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function newRef(){const a=new Uint32Array(6);crypto.getRandomValues(a);return "EU-"+[...a].map(n=>REF_CHARS[n%REF_CHARS.length]).join("")}
+const inflight={};
+// Resolves only after Firebase confirms the order is saved on the server.
+async function sendOrder(o){
+  const {db,fs}=await withTimeout(fbReady,SEND_TIMEOUT);
+  if(!inflight[o.ref]){
+    inflight[o.ref]=fs.setDoc(fs.doc(db,"orders",o.ref),Object.assign({},o,{created:fs.serverTimestamp()}));
+    inflight[o.ref].catch(()=>{delete inflight[o.ref]});
+  }
+  await withTimeout(inflight[o.ref],SEND_TIMEOUT);
+  delete inflight[o.ref];
+}
+function sendError(e,what){
+  const c=e&&e.code;
+  if(c==="not-configured")return "Online ordering isn't connected yet. Please call or text 0954 419 1533 to "+(what==="request"?"request a quote.":"order.");
+  if(c==="permission-denied"||c==="invalid-argument")return "We couldn't accept some of these details. Please check them and try again, or call or text 0954 419 1533.";
+  return "We couldn't confirm your "+what+" was received. Check your internet connection, keep this page open and tap the button again. You can also call or text 0954 419 1533.";
+}
+function keepMine(o){S.mine[o.ref]=Object.assign({},o,{created:Date.now()});const refs=Object.keys(S.mine).sort((a,b)=>S.mine[b].created-S.mine[a].created);refs.slice(10).forEach(r=>delete S.mine[r]);save()}
+function normalize(o){
+  o.terms=o.terms||{};o.cal=o.cal||{state:"none"};o.msg=o.msg||{summary:"waiting",payment:"none"};o.hist=Array.isArray(o.hist)?o.hist:[];
+  o.lines=Array.isArray(o.lines)?o.lines:[];o.mains=o.mains||[];o.sides=o.sides||[];o.name=o.name||"";o.date=o.date||"";o.time=o.time||"00:00";
+  if(!STATUS[o.status])o.status="pending";return o;
+}
+let unsubOrders=null,ordersLoaded=false;
+function startFirebase(){
+  if(!LIVE){$("#offlineNote").hidden=false;S.auth={state:"off"};return}
+  fbReady.then(({db,fs,auth,au})=>{
+    fs.onSnapshot(fs.doc(db,"config","site"),snap=>{applyConfig(snap.exists()?snap.data():null);softRender(["trays","lechon","owner"])},e=>console.warn("Menu settings unavailable:",e.code));
+    au.onAuthStateChanged(auth,async u=>{
+      if(unsubOrders){unsubOrders();unsubOrders=null}
+      S.orders=[];ordersLoaded=false;S.ordersErr="";
+      if(!u){S.auth={state:"out"};return softRender(["owner"],true)}
+      S.auth={state:"loading"};softRender(["owner"],true);
+      let ok=false;
+      try{ok=(await fs.getDoc(fs.doc(db,"owners",u.uid))).exists()}catch(e){}
+      if(!ok){S.loginMsg="This account doesn't have owner access.";await au.signOut(auth);return}
+      S.auth={state:"owner",email:u.email};S.loginMsg="";softRender(["owner"],true);
+      unsubOrders=fs.onSnapshot(fs.query(fs.collection(db,"orders"),fs.orderBy("created","desc"),fs.limit(1000)),snap=>{
+        if(ordersLoaded)snap.docChanges().forEach(c=>{if(c.type==="added"&&!c.doc.metadata.hasPendingWrites)toast("New "+(c.doc.data().type==="catering"?"quotation request ":"order ")+c.doc.id)});
+        S.orders=snap.docs.map(d=>{const o=d.data();o.ref=d.id;o.created=o.created&&o.created.toMillis?o.created.toMillis():Date.now();return normalize(o)});
+        ordersLoaded=true;S.ordersErr="";softRender(["owner"]);
+      },e=>{S.ordersErr="Couldn't load orders ("+(e.code||"error")+"). Check your connection and reload the page.";softRender(["owner"],true)});
+    });
+  },()=>{S.auth={state:"error"};softRender(["owner"],true)});
+}
+// Re-render live data without wiping something the person is typing.
+function softRender(views,force){
+  const h=(location.hash||"#trays").slice(1)||"trays";if(!views.includes(h))return;
+  if($("#layer").innerHTML)return;
+  const a=document.activeElement;if(!force&&a&&$("#view").contains(a)&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName))return;
+  render();
+}
 
 /* ---------- helpers ---------- */
 const $=s=>document.querySelector(s);
@@ -390,6 +473,7 @@ function openCart(){
 
 /* checkout */
 let draft={};
+const pending={};
 function viewCheckout(){
   if(!S.cart.length)return `<div class="empty"><h2>Your order is empty</h2><p style="margin-top:8px">Add party trays or lechon first.</p><p style="margin-top:14px"><a class="btn primary" href="#trays">Browse the menu</a></p></div>`;
   const slots=timeSlots();
@@ -445,7 +529,7 @@ Status: Pending review. Our team will confirm availability and send payment deta
 }
 function viewReview(){
   if(!S.cart.length||!draft.name)return viewCheckout();
-  const o=Object.assign({ref:"EU-"+S.seq,type:"order",lines:S.cart,est:cartTotal()},draft);
+  const o=Object.assign({type:"order",lines:S.cart,est:cartTotal()},draft);
   return `<div class="steps"><span>1 Menu</span>›<span>2 Pickup details</span>›<b>3 Review</b></div>
   <div class="layout2"><div class="box"><h2>Review your order</h2>
    <dl class="kv"><dt>Name</dt><dd>${esc(o.name)}</dd><dt>Mobile</dt><dd>${esc(o.phone)}</dd><dt>Pickup</dt><dd>${esc(fmtDate(o.date))} · ${esc(fmtTime(o.time))}</dd><dt>Method</dt><dd>${esc(o.method)}</dd>${o.address?`<dt>Address</dt><dd>${esc(o.address)}</dd>`:""}${o.notes?`<dt>Notes</dt><dd>${esc(o.notes)}</dd>`:""}</dl>
@@ -459,32 +543,34 @@ function viewReview(){
 function bindReview(){
   const b=$("#sendBtn");if(!b)return;
   $("#backBtn").onclick=()=>{location.hash="checkout"};
-  b.onclick=()=>{
-    if(b.disabled)return;b.disabled=true;b.textContent="Sending…";
-    const m=checkSlot(draft.date,draft.time);if(m){$("#rvErr").textContent=m;b.disabled=false;b.textContent="Send order";return}
-    const key=JSON.stringify([S.cart,draft]);
-    let ref=S.idem[key];
-    if(!ref){ref="EU-"+S.seq++;const promo=S.cart.some(l=>l.promo);
-      S.orders.unshift(Object.assign({ref,type:"order",created:Date.now(),lines:S.cart.slice(),est:cartTotal(),status:"pending",terms:{},cal:{state:"none"},msg:{summary:"waiting",payment:"none"},promo,hist:["Order submitted on the website"]},draft));S.idem[key]=ref}
-    S.cart=[];draft={};save();updateCount();location.hash="done-"+ref.slice(3);
+  b.onclick=async()=>{
+    if(b.disabled)return;const err=$("#rvErr");err.textContent="";
+    const m=checkSlot(draft.date,draft.time);if(m){err.textContent=m;return}
+    b.disabled=true;b.textContent="Sending…";
+    const d={name:draft.name,phone:draft.phone,date:draft.date,time:draft.time,method:draft.method,address:draft.address||"",notes:draft.notes||""};
+    const key=JSON.stringify([S.cart,d]);
+    if(!pending.order||pending.order.key!==key)pending.order={key,ref:newRef()};
+    const ref=pending.order.ref;
+    const o=Object.assign({ref,type:"order",lines:S.cart.map(l=>({pid:l.pid,name:l.name,detail:l.detail,unit:l.unit,qty:l.qty,promo:!!l.promo})),est:cartTotal(),promo:S.cart.some(l=>l.promo),status:"pending",terms:{},cal:{state:"none"},msg:{summary:"waiting",payment:"none"},hist:["Order submitted on the website"]},d);
+    try{await sendOrder(o)}catch(e){err.textContent=sendError(e,"order");b.disabled=false;b.textContent="Send order";return}
+    pending.order=null;keepMine(o);S.cart=[];draft={};save();updateCount();location.hash="done-"+ref.slice(3);
   };
 }
 function viewDone(ref){
-  const o=S.orders.find(x=>x.ref===ref);if(!o)return `<div class="empty">Order not found.</div>`;
+  const o=S.mine[ref];if(!o)return `<div class="empty">Order not found on this device. If you sent it, mention your reference when you message or call us at 0954 419 1533.</div>`;
   const txt=summaryText(o);
-  return `<div class="layout2"><div class="box"><div class="eyebrow">${o.type==="catering"?"Quotation request sent":"Order sent"}</div><div class="ref num">${esc(o.ref)}</div>
-   <p>Thank you, ${esc(o.name.replace(/^Sample: /,""))}. Your ${o.type==="catering"?"request":"order"} is saved. It is <b>not reserved yet</b>. We'll confirm availability and send ${o.type==="catering"?"your quote and ":""}payment details in Messenger.</p>
-   <a class="btn pink" id="msgr" href="https://m.me/${PAGE_ID}?ref=${encodeURIComponent(o.ref)}" target="_blank" rel="noopener">Continue in Messenger</a>
-   <p class="small muted">Tap the button and press <b>Get started</b> or send any message, so our chat links to ${esc(o.ref)} and your summary appears there.</p>
-   <details><summary class="small" style="cursor:pointer;font-weight:600">Messenger didn't open or no summary appeared?</summary>
-   <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px"><p class="small">Copy your order, open our chat, then paste and send it.</p><pre class="msg">${esc(txt)}</pre><div class="actions"><a class="btn primary sm" id="cpOpen" href="https://m.me/${PAGE_ID}" target="_blank" rel="noopener">Copy order &amp; open Messenger</a></div></div></details>
-  </div><aside class="box"><h3>Keep your reference</h3><p class="small">Mention <b>${esc(o.ref)}</b> when you message or call us at <span class="num">0954 419 1533</span>. If we can't answer, please text.</p><p class="note">In this preview, the Messenger link opens the real Eurika's page but no message is sent automatically. That needs the live site connected to Meta.</p><a class="btn ghost" href="#trays">Back to menu</a></aside></div>`;
+  return `<div class="layout2"><div class="box"><div class="eyebrow">${o.type==="catering"?"Quotation request received":"Order received"}</div><div class="ref num">${esc(o.ref)}</div>
+   <p>Thank you, ${esc(o.name.replace(/^Sample: /,""))}. We've received your ${o.type==="catering"?"request":"order"}. It is <b>not reserved yet</b>. We'll confirm availability and send ${o.type==="catering"?"your quote and ":""}payment details in Messenger.</p>
+   <a class="btn pink" id="msgr" href="https://m.me/${PAGE_ID}?ref=${encodeURIComponent(o.ref)}" target="_blank" rel="noopener">Copy order &amp; continue in Messenger</a>
+   <p class="small muted">The button copies your order summary and opens our chat. Paste and send it so we can reply about ${esc(o.ref)} faster.</p>
+   <details><summary class="small" style="cursor:pointer;font-weight:600">See your order summary</summary>
+   <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px"><pre class="msg">${esc(txt)}</pre><div class="actions"><button class="btn primary sm" type="button" id="cpOpen">Copy order</button></div></div></details>
+  </div><aside class="box"><h3>Keep your reference</h3><p class="small">Mention <b>${esc(o.ref)}</b> when you message or call us at <span class="num">0954 419 1533</span>. If we can't answer, please text.</p><a class="btn ghost" href="#trays">Back to menu</a></aside></div>`;
 }
 function bindDone(ref){
-  const o=S.orders.find(x=>x.ref===ref);if(!o)return;
-  const mark=s=>{if(o.msg.summary!=="linked"){o.msg.summary=s;o.hist.push(s==="linked"?"Customer tapped Continue in Messenger":"Customer used Copy Order & Open Messenger");save()}};
-  $("#msgr").addEventListener("click",()=>mark("tapped"));
-  $("#cpOpen").addEventListener("click",e=>{copy(summaryText(o),e.target);mark("fallback")});
+  const o=S.mine[ref];if(!o)return;
+  $("#msgr").addEventListener("click",e=>copy(summaryText(o),e.target));
+  $("#cpOpen").addEventListener("click",e=>copy(summaryText(o),e.target));
 }
 
 /* catering */
@@ -517,14 +603,19 @@ function bindCatering(){
   const upd=()=>{const p=pk();const g=Math.max(0,Number($("#catGuests").value)||0);$("#catEst").textContent=peso(p.per*g);
     f.querySelectorAll("[data-counter]").forEach(c=>{const n=+c.dataset.n;const k=f.querySelectorAll(`input[name=${c.dataset.counter}]:checked`).length;c.textContent=`${k} of ${n} chosen`;c.classList.toggle("okc",k===n);f.querySelectorAll(`input[name=${c.dataset.counter}]`).forEach(i=>{i.disabled=!i.checked&&k>=n})})};
   f.addEventListener("change",e=>{if(e.target.name==="catPkg")renderPicks();else upd()});f.addEventListener("input",upd);renderPicks();
-  f.onsubmit=e=>{e.preventDefault();const b=$("#catSend");if(b.disabled)return;
-    const p=pk();const g=Number($("#catGuests").value);const mains=[...f.querySelectorAll("input[name=catMain]:checked")].map(i=>i.value),sides=[...f.querySelectorAll("input[name=catSide]:checked")].map(i=>i.value);
+  f.onsubmit=async e=>{e.preventDefault();const b=$("#catSend");if(b.disabled)return;
+    const p=pk();const g=Math.round(Number($("#catGuests").value));const mains=[...f.querySelectorAll("input[name=catMain]:checked")].map(i=>i.value),sides=[...f.querySelectorAll("input[name=catSide]:checked")].map(i=>i.value);
     const d={pkg:p.id,guests:g,date:$("#catDate").value,time:$("#catTime").value,venue:$("#catVenue").value.trim(),name:$("#catName").value.trim(),phone:$("#catPhone").value.trim(),notes:$("#catNotes").value.trim(),theme:$("#catTheme").value.trim(),fb:$("#catFb").value.trim(),email:$("#catEmail").value.trim(),alt:$("#catAlt").value.trim(),altPhone:$("#catAltPhone").value.trim()};
     let m="";if(!(g>=50))m="Catering is for at least 50 guests.";else if(mains.length!==p.mains||sides.length!==p.sides)m=`Choose ${p.mains} main dishes and ${p.sides} side dish${p.sides>1?"es":""}.`;else if(!d.venue)m="Enter the venue address.";else if(!d.theme)m="Enter your color theme, or type “No preference”.";else if(!d.name)m="Enter your full name.";else if(d.phone.replace(/\D/g,"").length<10)m="Enter a valid mobile number.";else m=checkSlot(d.date,d.time);
     $("#catErr").textContent=m;if(m){draft.cat=d;return}
-    b.disabled=true;const key=JSON.stringify([d,mains,sides]);let ref=S.idem[key];
-    if(!ref){ref="EU-"+S.seq++;S.orders.unshift({ref,type:"catering",created:Date.now(),name:d.name,phone:d.phone,date:d.date,time:d.time,method:"Catering",address:d.venue,notes:d.notes,theme:d.theme,fb:d.fb,email:d.email,alt:d.alt,altPhone:d.altPhone,guests:g,pkg:p.id,mains,sides,dessert:f.querySelector("input[name=catDessert]:checked").value,lines:[],est:p.per*g,status:"pending",terms:{},cal:{state:"none"},msg:{summary:"waiting",payment:"none"},hist:["Quotation request submitted"]});S.idem[key]=ref}
-    draft={};save();location.hash="done-"+ref.slice(3)};
+    b.disabled=true;b.textContent="Sending…";
+    const dessert=f.querySelector("input[name=catDessert]:checked").value;
+    const key=JSON.stringify([d,mains,sides,dessert]);
+    if(!pending.cat||pending.cat.key!==key)pending.cat={key,ref:newRef()};
+    const ref=pending.cat.ref;
+    const o={ref,type:"catering",name:d.name,phone:d.phone,date:d.date,time:d.time,method:"Catering",address:d.venue,notes:d.notes,theme:d.theme,fb:d.fb,email:d.email,alt:d.alt,altPhone:d.altPhone,guests:g,pkg:p.id,mains,sides,dessert,lines:[],est:p.per*g,promo:false,status:"pending",terms:{},cal:{state:"none"},msg:{summary:"waiting",payment:"none"},hist:["Quotation request submitted"]};
+    try{await sendOrder(o)}catch(er){draft.cat=d;$("#catErr").textContent=sendError(er,"request");b.disabled=false;b.textContent="Send quotation request";return}
+    pending.cat=null;keepMine(o);draft={};save();location.hash="done-"+ref.slice(3)};
 }
 
 /* contact */
@@ -566,10 +657,28 @@ ${PAY.map(p=>`• ${p[0]} – ${p[1]} – ${p[2]}`).join("\n")}
 Palihug i-send ang screenshot sa imong payment dinhi sa chat. Ma-reserve ang imong slot once ma-verify na namo ang payment. Salamat! 💕`;
 }
 function ownerLogin(){
-  return `<div class="box" style="max-width:420px;margin:30px auto"><div class="eyebrow">Owner dashboard</div><h2>Sign in</h2><p class="small muted">In the live site, only your account can open this page.</p><form id="loginF" class="box" style="border:0;padding:0"><label class="f">PIN <small>Preview PIN: 2017</small><input id="pin" type="password" inputmode="numeric" autocomplete="off"></label><div class="err" id="pinErr" role="alert"></div><button class="btn primary" type="submit">Open dashboard</button></form></div>`;
+  const st=S.auth.state;
+  if(st==="off")return `<div class="box" style="max-width:420px;margin:30px auto"><div class="eyebrow">Owner dashboard</div><h2>Not connected yet</h2><p class="small muted">Firebase isn't set up for this website yet. Follow the steps in SETUP.md, then reload this page.</p></div>`;
+  if(st==="error")return `<div class="box" style="max-width:420px;margin:30px auto"><div class="eyebrow">Owner dashboard</div><h2>Couldn't connect</h2><p class="small muted">Check your internet connection and reload this page.</p></div>`;
+  if(st==="loading")return `<div class="box" style="max-width:420px;margin:30px auto"><div class="eyebrow">Owner dashboard</div><h2>Checking sign-in…</h2></div>`;
+  return `<div class="box" style="max-width:420px;margin:30px auto"><div class="eyebrow">Owner dashboard</div><h2>Sign in</h2><p class="small muted">Only Eurika's owner account can open this page.</p><form id="loginF" class="box" style="border:0;padding:0" novalidate><label class="f">Email<input id="lEmail" type="email" autocomplete="username" inputmode="email"></label><label class="f">Password<input id="lPass" type="password" autocomplete="current-password"></label><div class="err" id="pinErr" role="alert">${esc(S.loginMsg)}</div><button class="btn primary" type="submit">Sign in</button><button class="btn sm ghost" type="button" id="forgot">Forgot password?</button></form></div>`;
 }
+function authError(e){
+  const c=e&&e.code||"";
+  if(/invalid-credential|wrong-password|user-not-found|invalid-email|invalid-login/.test(c))return "That email or password is incorrect.";
+  if(/too-many-requests/.test(c))return "Too many attempts. Wait a few minutes, or reset your password.";
+  if(/network/.test(c))return "Couldn't connect. Check your internet connection.";
+  if(/user-disabled/.test(c))return "This account has been disabled.";
+  return "Couldn't sign in. Please try again.";
+}
+async function fbWrite(fn,okMsg){
+  try{const f=await fbReady;await fn(f);if(okMsg)toast(okMsg);return true}
+  catch(e){console.warn(e);toast("Couldn't save. Check your connection and try again.");render();return false}
+}
+const saveOrder=(o,fields,okMsg)=>fbWrite(({db,fs})=>fs.updateDoc(fs.doc(db,"orders",o.ref),fields),okMsg);
+const saveConfig=(patch,okMsg)=>fbWrite(({db,fs})=>fs.setDoc(fs.doc(db,"config","site"),patch,{merge:true}),okMsg);
 function viewOwner(){
-  if(!S.owner)return ownerLogin();
+  if(S.auth.state!=="owner")return ownerLogin();
   const tabs=[["orders","Orders"],["calendar","Calendar"],["menu","Menu & promos"],["settings","Settings"]];
   const pend=S.orders.filter(o=>o.status==="pending").length,aw=S.orders.filter(o=>o.status==="await").length,rs=S.orders.filter(o=>o.status==="reserved"&&o.date>=iso(TODAY)).length,fl=S.orders.filter(needsAttention).length;
   let body="";
@@ -577,16 +686,16 @@ function viewOwner(){
   if(S.otab==="calendar")body=ownerCalendar();
   if(S.otab==="menu")body=ownerMenu();
   if(S.otab==="settings")body=ownerSettings();
-  return `<div class="section-head"><div><div class="eyebrow">Owner dashboard</div><h2>Orders &amp; bookings</h2></div><button class="btn sm ghost" type="button" id="logout">Sign out</button></div>
+  return `<div class="section-head"><div><div class="eyebrow">Owner dashboard</div><h2>Orders &amp; bookings</h2><p class="small muted">Signed in as ${esc(S.auth.email||"")}</p></div><button class="btn sm ghost" type="button" id="logout">Sign out</button></div>${S.ordersErr?`<p class="err" role="alert" style="margin-bottom:12px">${esc(S.ordersErr)}</p>`:""}${ordersLoaded||S.ordersErr?"":`<p class="small muted" style="margin-bottom:12px">Loading orders…</p>`}
   <div class="stats"><div class="stat"><b class="num">${pend}</b><span>Pending review</span></div><div class="stat"><b class="num">${aw}</b><span>Awaiting payment</span></div><div class="stat"><b class="num">${rs}</b><span>Reserved, upcoming</span></div><div class="stat"><b class="num" style="color:${fl?"var(--bad)":"inherit"}">${fl}</b><span>Need attention</span></div></div>
   <div class="otabs" role="tablist">${tabs.map(([k,l])=>`<button type="button" data-otab="${k}" aria-pressed="${S.otab===k}">${l}</button>`).join("")}</div>${body}`;
 }
-function needsAttention(o){return o.cal.state==="failed"||o.msg.payment==="failed"||(o.status!=="cancel"&&o.msg.summary==="fallback")}
+function needsAttention(o){return o.cal.state==="failed"||o.msg.payment==="failed"}
 function ownerOrders(){
   const F=[["all","All"],["pending","Pending review"],["await","Awaiting payment"],["reserved","Reserved"],["cancel","Cancelled"]];
   const list=S.orders.filter(o=>S.filter==="all"||o.status===S.filter).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   const sel=S.orders.find(o=>o.ref===S.sel)||list[0];
-  return `<div class="olayout"><div><div class="opts" style="margin-bottom:12px"><label class="f" style="flex:1;min-width:200px">Find by reference or name<input id="ofind" type="text" placeholder="EU-1043"></label></div>
+  return `<div class="olayout"><div><div class="opts" style="margin-bottom:12px"><label class="f" style="flex:1;min-width:200px">Find by reference or name<input id="ofind" type="text" placeholder="EU-7KQ2MD or customer name"></label></div>
    <div class="opts" style="margin-bottom:12px">${F.map(([k,l])=>`<button class="btn sm ${S.filter===k?"primary":""}" type="button" data-filter="${k}">${l}</button>`).join("")}</div>
    <div class="olist" id="olist">${list.map(o=>`<button class="orow" type="button" data-sel="${o.ref}" aria-current="${sel&&sel.ref===o.ref}" data-s="${esc((o.ref+" "+o.name).toLowerCase())}"><span class="r">${o.ref}</span><span class="who">${esc(o.name)}</span>${pill(o.status)}<span class="sub"><span>${o.type==="catering"?"Catering quote · "+o.guests+" pax":esc(o.lines.map(l=>l.name).join(", "))}</span><span>${esc(fmtDate(o.date))} · ${fmtTime(o.time)}</span><span class="num">${peso(o.terms.final||o.est)}</span>${needsAttention(o)?`<span class="pill flag">Needs attention</span>`:""}</span></button>`).join("")||`<div class="empty">No orders here.</div>`}</div></div>
    <div>${sel?ownerDetail(sel):""}</div></div>`;
@@ -595,8 +704,8 @@ function ownerDetail(o){
   const t=o.terms;const final=t.final!=null?t.final:o.est;
   const due=t.due!=null?t.due:Math.round(final*.5);
   const items=o.type==="catering"?(()=>{const pk=CATERING.find(c=>c.id===o.pkg);return `<dl class="kv"><dt>Package</dt><dd>${peso(pk.per)}/head · ${pk.mains} mains + ${pk.sides} side${pk.sides>1?"s":""}</dd><dt>Guests</dt><dd>${o.guests}</dd><dt>Color theme</dt><dd>${esc(o.theme||"Not specified")}</dd>${o.fb?`<dt>Facebook</dt><dd>${esc(o.fb)}</dd>`:""}${o.email?`<dt>Email</dt><dd>${esc(o.email)}</dd>`:""}${o.alt?`<dt>Event-day contact</dt><dd>${esc(o.alt)}${o.altPhone?" · "+esc(o.altPhone):""}</dd>`:""}<dt>Mains</dt><dd>${esc(o.mains.join(", "))}</dd><dt>Sides</dt><dd>${esc(o.sides.join(", "))}</dd><dt>Dessert</dt><dd>${esc(o.dessert)}</dd></dl>`})():o.lines.map(l=>`<div class="line"><div><b>${l.qty} × ${esc(l.name)}</b>${l.promo?` <span class="save">Promo</span>`:""}<div class="d">${esc(l.detail)}</div></div><div class="num">${peso(l.unit*l.qty)}</div></div>`).join("");
-  const msgState={linked:"Summary sent in Messenger",tapped:"Customer opened Messenger; waiting for them to tap Get started",waiting:"Customer hasn't opened Messenger yet",fallback:"Automatic handoff not completed. Customer was asked to paste the summary."}[o.msg.summary];
-  const calState={none:"Not on calendar yet",synced:`On Google Calendar: ${esc(eventTitle(o))}`,failed:"Google Calendar sync failed"}[o.cal.state];
+  const msgState={linked:"Summary sent in Messenger",tapped:"Customer opened Messenger",waiting:`Look for ${esc(o.ref)} in your Page inbox. The customer was asked to paste their summary there.`,fallback:"Customer was asked to paste the summary."}[o.msg.summary]||"";
+  const calState={none:o.status==="reserved"?"On this dashboard's Calendar tab (Google Calendar not connected yet)":"Not reserved yet",synced:`On Google Calendar: ${esc(eventTitle(o))}`,failed:"Google Calendar sync failed"}[o.cal.state]||"";
   const editable=o.status==="pending"||o.status==="await";
   return `<div class="box"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><div><div class="eyebrow">${o.type==="catering"?"Quotation request":"Order"}</div><h3 class="num">${o.ref}</h3></div>${pill(o.status)}</div>
    <dl class="kv"><dt>Customer</dt><dd>${esc(o.name)}</dd><dt>Mobile</dt><dd class="num">${esc(o.phone)}</dd><dt>${o.type==="catering"?"Event":"Pickup"}</dt><dd>${esc(fmtDate(o.date))} · ${fmtTime(o.time)}</dd><dt>${o.type==="catering"?"Venue":"Method"}</dt><dd>${esc(o.type==="catering"?o.address:o.method)}${o.type!=="catering"&&o.address?"<br>"+esc(o.address):""}</dd>${o.notes?`<dt>Notes</dt><dd>${esc(o.notes)}</dd>`:""}<dt>Messenger</dt><dd>${msgState}</dd><dt>Calendar</dt><dd>${calState}</dd></dl>
@@ -607,11 +716,10 @@ function ownerDetail(o){
      <div class="two"><label class="f">Remaining balance<input id="tBal" type="number" min="0" value="${final-due}" readonly></label><label class="f">Pay by <small>Optional deadline</small><input id="tDead" type="date" value="${esc(t.deadline||"")}"></label></div>
      <label class="f">Balance due<input id="tBalDue" type="text" value="${esc(t.balanceDue!=null?t.balanceDue:(o.type==="catering"?"":"Upon pickup or before rider release"))}" placeholder="${o.type==="catering"?"e.g. 3 days before the event":""}"></label>
      ${editable?"":`<p class="small muted">Terms are locked once reserved. Reschedule or cancel below.</p>`}</div>`:""}
-   ${o.status==="await"||(o.msg.payment!=="none"&&o.status!=="cancel")?`<div class="box"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h3 style="font-size:17px">Payment message</h3>${o.msg.payment==="failed"?`<span class="pill flag">Not delivered</span>`:`<span class="pill st-reserved">Sent in Messenger</span>`}</div>${o.msg.payment==="failed"?`<p class="small">Messenger couldn't deliver this automatically. The customer last messaged more than 24 hours ago. Copy the reply below and send it yourself.</p>`:""}<pre class="msg">${esc(paymentText(o))}</pre><div class="actions"><button class="btn sm" type="button" id="cpPay">Copy reply</button></div></div>`:""}
+   ${o.status==="await"||(o.msg.payment!=="none"&&o.status!=="cancel")?`<div class="box"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h3 style="font-size:17px">Payment message</h3>${o.msg.payment==="sent"?`<span class="pill st-reserved">Sent in Messenger</span>`:`<span class="pill st-await">Send it yourself</span>`}</div>${o.msg.payment==="sent"?"":`<p class="small">Copy this reply and send it to the customer in Messenger.</p>`}<pre class="msg">${esc(paymentText(o))}</pre><div class="actions"><button class="btn sm" type="button" id="cpPay">Copy reply</button></div></div>`:""}
    <div class="actions">
     ${o.status==="pending"?`<button class="btn pink" type="button" data-act="approve">Approve &amp; send payment details</button>`:""}
     ${o.status==="await"?`<button class="btn pink" type="button" data-act="reserve">Payment verified → Reserve</button>`:""}
-    ${o.cal.state==="failed"?`<button class="btn" type="button" data-act="retry">Retry sync</button>`:""}
     ${o.status!=="cancel"?`<button class="btn" type="button" data-act="resched">Reschedule</button><button class="btn ghost" type="button" data-act="cancel">Cancel booking</button>`:""}
    </div>
    <div id="actPanel"></div>
@@ -619,8 +727,21 @@ function ownerDetail(o){
   </div>`;
 }
 function bindOwner(){
-  const lf=$("#loginF");if(lf){lf.onsubmit=e=>{e.preventDefault();if($("#pin").value==="2017"){S.owner=true;save();render()}else $("#pinErr").textContent="That PIN is incorrect."};return}
-  $("#logout").onclick=()=>{S.owner=false;save();render()};
+  const lf=$("#loginF");
+  if(lf){
+    const msg=t=>{$("#pinErr").textContent=t};
+    lf.onsubmit=async e=>{e.preventDefault();const btn=lf.querySelector("button[type=submit]");if(btn.disabled)return;
+      const em=$("#lEmail").value.trim(),pw=$("#lPass").value;if(!em||!pw){msg("Enter your email and password.");return}
+      btn.disabled=true;btn.textContent="Signing in…";S.loginMsg="";msg("");
+      try{const {auth,au}=await fbReady;await au.signInWithEmailAndPassword(auth,em,pw)}
+      catch(er){btn.disabled=false;btn.textContent="Sign in";msg(authError(er))}};
+    $("#forgot").onclick=async()=>{const em=$("#lEmail").value.trim();if(!em){msg("Enter your email first, then tap Forgot password.");return}
+      try{const {auth,au}=await fbReady;await au.sendPasswordResetEmail(auth,em)}catch(er){if(/network/.test(er&&er.code||"")){msg("Couldn't connect. Check your internet connection.");return}}
+      msg("If this is the owner email, a password reset link is on its way. Check your inbox.")};
+    return;
+  }
+  const lo=$("#logout");if(!lo)return;
+  lo.onclick=async()=>{const {auth,au}=await fbReady;await au.signOut(auth)};
   document.querySelectorAll("[data-otab]").forEach(b=>b.onclick=()=>{S.otab=b.dataset.otab;save();render()});
   document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{S.filter=b.dataset.filter;save();render()});
   document.querySelectorAll("[data-sel]").forEach(b=>b.onclick=()=>{S.sel=b.dataset.sel;save();render();if(innerWidth<900)document.querySelector(".olayout>div:last-child")?.scrollIntoView({behavior:"smooth"})});
@@ -637,34 +758,24 @@ function bindOwner(){
     document.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>{
       const a=b.dataset.act;b.disabled=true;
       if(a==="approve"){const t=readTerms();if(!(t.final>0)||!(t.due>0)||t.due>t.final){toast("Enter a final total and an amount due now");b.disabled=false;return}
-        o.terms=t;o.status="await";const late=o.msg.summary!=="linked";o.msg.payment=late?"failed":"sent";
-        o.hist.push("Approved with final total "+peso(t.final)+", "+peso(t.due)+" due now");o.hist.push(late?"Payment message not delivered automatically; copy-ready reply prepared":"Payment instructions sent in Messenger");
-        toast(late?"Approved. Send the payment message yourself.":"Approved. Payment details sent in Messenger.")}
-      if(a==="reserve"){o.status="reserved";o.hist.push("Payment verified, booking reserved");syncCal(o,"create")}
-      if(a==="retry"){syncCal(o,o.cal.id?"update":"create",true)}
+        const hist=o.hist.concat(["Approved with final total "+peso(t.final)+", "+peso(t.due)+" due now","Payment message ready to send in Messenger"]);
+        saveOrder(o,{terms:t,status:"await","msg.payment":"manual",hist},"Approved. Copy the payment message and send it in Messenger.");return}
+      if(a==="reserve"){saveOrder(o,{status:"reserved",hist:o.hist.concat(["Payment verified, booking reserved"])},"Booking reserved");return}
       if(a==="cancel"){$("#actPanel").innerHTML=`<div class="box" style="background:var(--bad-soft)"><p><b>Cancel ${o.ref}?</b> The customer isn't messaged automatically. Send them the cancellation breakdown in Messenger.</p><div class="actions"><button class="btn primary sm" type="button" id="cYes">Yes, cancel booking</button><button class="btn sm" type="button" id="cNo">Keep booking</button></div></div>`;
-        $("#cNo").onclick=()=>{$("#actPanel").innerHTML="";b.disabled=false};$("#cYes").onclick=()=>{o.status="cancel";o.hist.push("Booking cancelled");if(o.cal.id){o.hist.push("Removed Google Calendar event "+o.cal.id);o.cal={state:"none"}}save();render();toast("Booking cancelled")};return}
+        $("#cNo").onclick=()=>{$("#actPanel").innerHTML="";b.disabled=false};$("#cYes").onclick=()=>{$("#cYes").disabled=true;saveOrder(o,{status:"cancel",hist:o.hist.concat(["Booking cancelled"])},"Booking cancelled")};return}
       if(a==="resched"){$("#actPanel").innerHTML=`<div class="box"><div class="two"><label class="f">New date<input id="rDate" type="date" value="${o.date}"></label><label class="f">New time<select id="rTime">${timeSlots().map(t=>`<option value="${t}" ${t===o.time?"selected":""}>${fmtTime(t)}</option>`).join("")}</select></label></div><div class="err" id="rErr"></div><div class="actions"><button class="btn primary sm" type="button" id="rSave">Save new schedule</button><button class="btn sm" type="button" id="rNo">Close</button></div></div>`;
-        $("#rNo").onclick=()=>{$("#actPanel").innerHTML="";b.disabled=false};$("#rSave").onclick=()=>{const d=$("#rDate").value,tm=$("#rTime").value;if(S.settings.blocked.includes(d)){$("#rErr").textContent="That date is blocked. Unblock it in Settings first.";return}const old=fmtDate(o.date)+" "+fmtTime(o.time);o.date=d;o.time=tm;o.hist.push("Rescheduled from "+old+" to "+fmtDate(d)+" "+fmtTime(tm));if(o.status==="reserved")syncCal(o,"update");save();render();toast("Schedule updated")};return}
-      save();render();
+        $("#rNo").onclick=()=>{$("#actPanel").innerHTML="";b.disabled=false};$("#rSave").onclick=()=>{const d=$("#rDate").value,tm=$("#rTime").value;if(!d){$("#rErr").textContent="Choose a date.";return}if(S.settings.blocked.includes(d)){$("#rErr").textContent="That date is blocked. Unblock it in Settings first.";return}const old=fmtDate(o.date)+" "+fmtTime(o.time);$("#rSave").disabled=true;saveOrder(o,{date:d,time:tm,hist:o.hist.concat(["Rescheduled from "+old+" to "+fmtDate(d)+" "+fmtTime(tm)])},"Schedule updated")};return}
     });
   }
   if(S.otab==="calendar"){document.querySelectorAll("[data-mo]").forEach(b=>b.onclick=()=>{const[y,m]=S.calMonth.split("-").map(Number);const d=new Date(y,m-1+Number(b.dataset.mo),1);S.calMonth=iso(d).slice(0,7);save();render()});
     document.querySelectorAll(".ev[data-sel]").forEach(b=>b.onclick=()=>{S.sel=b.dataset.sel;S.otab="orders";S.filter="all";save();render()})}
-  if(S.otab==="menu"){document.querySelectorAll("[data-mp]").forEach(i=>i.onchange=()=>{const[id,k]=i.dataset.mp.split("|");const p=prod(id);const v=Math.max(0,Math.round(+i.value||0));if(k==="price")p.price=v;else p.sizes.find(s=>s.k===k).price=v;save();toast("Price saved")});
-    document.querySelectorAll("[data-mon]").forEach(i=>i.onchange=()=>{prod(i.dataset.mon).off=!i.checked;save();toast(i.checked?"Shown on the menu":"Hidden from the menu")});
-    document.querySelectorAll("[data-mu]").forEach(i=>i.onchange=()=>{prod(i.dataset.mu).until=i.value||undefined;save();toast("Promo end date saved")})}
-  if(S.otab==="settings"){$("#bAdd").onclick=()=>{const d=$("#bDate").value;if(d&&!S.settings.blocked.includes(d)){S.settings.blocked.push(d);S.settings.blocked.sort();save();render();toast("Date blocked")}};
-    document.querySelectorAll("[data-unb]").forEach(b=>b.onclick=()=>{S.settings.blocked=S.settings.blocked.filter(x=>x!==b.dataset.unb);save();render()});
-    $("#sLead").onchange=e=>{S.settings.lead=Math.max(0,+e.target.value||0);save();toast("Lead time saved")};
-    $("#sRem").onchange=e=>{S.settings.reminders=e.target.value;save();toast("Reminders saved")}}
-}
-function syncCal(o,mode,retry){
-  // Preview: simulates Google Calendar. One event per booking, reused on retry so nothing duplicates.
-  if(!o.cal.id)o.cal.id="evt_"+o.ref.slice(3);
-  o.cal.state="synced";
-  o.hist.push((mode==="update"?"Updated":"Added")+" Google Calendar event "+o.cal.id+": "+eventTitle(o)+(retry?" (retry)":""));
-  toast(mode==="update"?"Calendar event updated":"Added to Google Calendar");
+  if(S.otab==="menu"){document.querySelectorAll("[data-mp]").forEach(i=>i.onchange=()=>{const[id,k]=i.dataset.mp.split("|");const v=Math.max(0,Math.round(+i.value||0));i.value=v;saveConfig({menu:{[id]:k==="price"?{price:v}:{sizes:{[k]:v}}}},"Price saved")});
+    document.querySelectorAll("[data-mon]").forEach(i=>i.onchange=()=>{saveConfig({menu:{[i.dataset.mon]:{off:!i.checked}}},i.checked?"Shown on the menu":"Hidden from the menu")});
+    document.querySelectorAll("[data-mu]").forEach(i=>i.onchange=()=>{saveConfig({menu:{[i.dataset.mu]:{until:i.value||""}}},"Promo end date saved")})}
+  if(S.otab==="settings"){$("#bAdd").onclick=()=>{const d=$("#bDate").value;if(d&&!S.settings.blocked.includes(d))saveConfig({settings:{blocked:S.settings.blocked.concat([d]).sort()}},"Date blocked")};
+    document.querySelectorAll("[data-unb]").forEach(b=>b.onclick=()=>{saveConfig({settings:{blocked:S.settings.blocked.filter(x=>x!==b.dataset.unb)}},"Date unblocked")});
+    $("#sLead").onchange=e=>{saveConfig({settings:{lead:Math.max(0,Math.round(+e.target.value||0))}},"Lead time saved")};
+    $("#sRem").onchange=e=>{saveConfig({settings:{reminders:e.target.value.trim()}},"Reminders saved")}}
 }
 function ownerCalendar(){
   const[y,m]=S.calMonth.split("-").map(Number);const first=new Date(y,m-1,1);const start=new Date(first);start.setDate(1-first.getDay());
@@ -673,7 +784,7 @@ function ownerCalendar(){
   const cls={pending:"pending",await:"await",reserved:"reserved"};
   return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap"><button class="btn sm" type="button" data-mo="-1" aria-label="Previous month">‹</button><h3>${first.toLocaleDateString("en-US",{month:"long",year:"numeric"})}</h3><button class="btn sm" type="button" data-mo="1" aria-label="Next month">›</button><span class="spacer"></span><span class="small muted">Times in Asia/Manila</span></div>
   <div class="calwrap"><div class="cal">${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d=>`<div class="dh">${d}</div>`).join("")}${cells.map(d=>{const k=iso(d);const ev=(by[k]||[]).sort((a,b)=>a.time.localeCompare(b.time));return `<div class="day ${d.getMonth()!==m-1?"out":""} ${k===iso(TODAY)?"today":""} ${S.settings.blocked.includes(k)?"blocked":""}"><span class="n">${d.getDate()}${S.settings.blocked.includes(k)?" · Full":""}</span>${ev.map(o=>`<button class="ev ${cls[o.status]}" type="button" data-sel="${o.ref}" title="${esc(eventTitle(o))}">${o.type==="catering"?"Catering "+o.guests+" pax":fmtTime(o.time)+" "+esc(o.lines[0].name)} · ${o.ref}</button>`).join("")}</div>`}).join("")}</div></div>
-  <div class="legend"><span><span class="pill st-reserved">Reserved</span> synced to Google Calendar</span><span><span class="pill st-await">Awaiting payment</span></span><span><span class="pill st-pending">Pending review</span></span><span>Striped day = fully booked</span></div>`;
+  <div class="legend"><span><span class="pill st-reserved">Reserved</span></span><span><span class="pill st-await">Awaiting payment</span></span><span><span class="pill st-pending">Pending review</span></span><span>Striped day = fully booked</span></div>`;
 }
 function ownerMenu(){
   const rows=S.menu.map(p=>{const prices=p.sizes?p.sizes.map(s=>`<label class="small" style="display:flex;flex-direction:column;gap:2px">${esc(s.label)}<input type="number" min="0" value="${s.price}" data-mp="${p.id}|${s.k}"></label>`).join(""):`<label class="small" style="display:flex;flex-direction:column;gap:2px">${p.kind==="dessert"?"Per cup":"Price"}<input type="number" min="0" value="${p.price}" data-mp="${p.id}|price"></label>`;
@@ -708,8 +819,8 @@ function render(){
 let lastHash=location.hash;
 addEventListener("hashchange",()=>{const ownerOnly=lastHash==="#owner"&&location.hash==="#owner";lastHash=location.hash;render();if(!ownerOnly)scrollTo(0,0)});
 $("#cartBtn").onclick=openCart;
-$("#resetBtn").onclick=()=>{S=fresh();draft={};save();render();toast("Test data reset")};
 render();
+startFirebase();
 })();
 </script>
 </body>
